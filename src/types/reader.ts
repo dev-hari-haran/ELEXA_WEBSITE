@@ -8,6 +8,7 @@ export interface ReaderSettings {
   fontSize: number; // 12px to 32px
   lineHeight: number; // 1.2 to 2.4
   letterSpacing: number; // -1px to 4px
+  zoomLevel?: number; // 80 to 150
   columnMargin: ColumnMargin;
   textAlign: TextAlign;
   pageAnimation: PageAnimation;

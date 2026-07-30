@@ -30,8 +30,10 @@ export default {
         }
       },
       fontFamily: {
+        display: ['Newsreader', 'Georgia', 'serif'],
         serif: ['Newsreader', 'Georgia', 'Garamond', 'serif'],
-        sans: ['Inter', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        reader: ['Literata', 'Georgia', 'serif'],
+        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
         dyslexic: ['OpenDyslexic', 'Arial', 'sans-serif']
       },

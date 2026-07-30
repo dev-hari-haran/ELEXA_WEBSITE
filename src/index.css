@@ -1,20 +1,23 @@
+/* Hallmark · genre: editorial · macrostructure: Workbench · design-system: design.md · designed-as-app */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root, [data-theme="cream"] {
-    --bg-main: #FAF7F0;
-    --bg-surface: #F2EDE4;
-    --bg-surface-hover: #E9E2D5;
-    --border-color: #E2DACD;
-    --text-primary: #1C1917;
-    --text-secondary: #57534E;
-    --text-muted: #78716C;
-    --accent-color: #E06A5E;
-    --accent-hover: #D15649;
-    --accent-light: #FDF2F0;
+    --bg-main: oklch(0.975 0.012 85); /* #FAF7F0 */
+    --bg-surface: oklch(0.945 0.018 80); /* #F2EDE4 */
+    --bg-surface-hover: oklch(0.915 0.022 75); /* #E9E2D5 */
+    --border-color: oklch(0.88 0.015 75); /* #E2DACD */
+    --text-primary: oklch(0.18 0.02 45); /* #1C1917 */
+    --text-secondary: oklch(0.42 0.02 45); /* #57534E */
+    --text-muted: oklch(0.55 0.02 45); /* #78716C */
+    --accent-color: oklch(0.62 0.18 35); /* #E06A5E */
+    --accent-hover: oklch(0.55 0.19 35); /* #D15649 */
+    --accent-light: oklch(0.96 0.02 35); /* #FDF2F0 */
     --shadow-color: rgba(60, 50, 40, 0.08);
+    --color-focus: oklch(0.55 0.16 35);
   }
 
   [data-theme="light"] {

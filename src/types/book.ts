@@ -28,6 +28,7 @@ export interface Bookmark {
   pageNumber: number;
   snippet: string;
   createdAt: string;
+  status?: 'to_read' | 'in_progress' | 'completed';
 }
 
 export interface Note {
@@ -45,12 +46,14 @@ export interface Book {
   id: string;
   title: string;
   subtitle?: string;
+  edition?: string;
   author: string;
   authorBio?: string;
+  authorAvatar?: string;
   coverImage: string;
   spineColor?: string;
   description: string;
-  category: 'Fantasy' | 'Sci-Fi' | 'Classics' | 'Non-Fiction' | 'Technology' | 'Biography';
+  category: 'Fantasy' | 'Sci-Fi' | 'Classics' | 'Non-Fiction' | 'Technology' | 'Biography' | 'Design' | 'Architecture';
   collection?: string;
   editors?: string[];
   language: string;
@@ -61,9 +64,12 @@ export interface Book {
   currentChapterId: string;
   progressPercentage: number;
   rating: number;
+  likesCount?: number;
+  isWishlisted?: boolean;
   publicationYear: number;
   chapters: Chapter[];
   isFavorite: boolean;
+  isUpcoming?: boolean;
   readingStatus: 'reading' | 'completed' | 'want_to_read';
   lastReadAt: string;
 }

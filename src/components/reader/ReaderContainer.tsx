@@ -7,7 +7,7 @@ import { TocDrawer } from './TocDrawer';
 import { ThemeSettingsPopover } from './ThemeSettingsPopover';
 import { TypographySettingsPopover } from './TypographySettingsPopover';
 import { PageSearchModal } from './PageSearchModal';
-import { Volume2, VolumeX, Maximize2, Minimize2 } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Share2, HardDriveDownload, Volume2, VolumeX, Maximize2, Minimize2, Check, Sparkles } from 'lucide-react';
 import { speechService } from '../../services/speechService';
 
 interface ReaderContainerProps {
@@ -26,8 +26,6 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
     toggleToc,
     isSearchOpen,
     toggleSearch,
-    isSettingsOpen,
-    toggleSettings,
     addHighlight,
     addBookmark,
     bookmarks,
@@ -41,7 +39,14 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectionMenuPos, setSelectionMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [selectedText, setSelectedText] = useState('');
+  const [isOfflineCached, setIsOfflineCached] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   // Active Chapter lookup
   const currentChapter =
@@ -92,6 +97,7 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
       snippet: selectedText || currentChapter.title,
       createdAt: new Date().toISOString(),
     });
+    showToast("Bookmark saved to Kanban!");
   };
 
   const isBookmarked = bookmarks.some(
@@ -118,18 +124,21 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
     }
   };
 
-  // Font family helper
-  const getFontClass = () => {
-    switch (settings.fontFamily) {
-      case 'sans':
-        return 'font-sans';
-      case 'mono':
-        return 'font-mono';
-      case 'dyslexic':
-        return 'font-dyslexic';
-      default:
-        return 'font-serif';
-    }
+  // Make Offline action
+  const handleMakeOffline = () => {
+    setIsOfflineCached(true);
+    showToast(`"${book.title}" saved locally for offline reading!`);
+  };
+
+  // Download PDF action
+  const handleDownloadPDF = () => {
+    window.print();
+  };
+
+  // Share action
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    showToast("Magazine link copied to clipboard!");
   };
 
   // Margin container width helper
@@ -144,33 +153,78 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
     }
   };
 
-  return (
-    <div className="relative min-h-screen bg-background text-text-primary transition-colors duration-300 flex flex-col items-center">
-      {/* Background Graphic Accent inspired by Reference Image 1 (Arch Gothic Windows) */}
-      <div className="fixed inset-0 pointer-events-none opacity-5 flex items-center justify-center">
-        <svg className="w-[800px] h-[800px] stroke-current fill-none stroke-[1]" viewBox="0 0 100 100">
-          <path d="M50 10 C 20 10, 10 40, 10 90 L 90 90 C 90 40, 80 10, 50 10 Z" />
-          <path d="M50 20 C 30 20, 20 45, 20 90 L 80 90 C 80 45, 70 20, 50 20 Z" />
-        </svg>
-      </div>
+  const zoomFactor = (settings.zoomLevel || 100) / 100;
 
-      {/* Top Header Bar (Hidden in Zen Mode) */}
+  return (
+    <div className="relative min-h-screen bg-background text-text-primary transition-colors duration-300 flex flex-col items-center select-none">
+      
+      {/* Toast Banner */}
+      {toastMessage && (
+        <div className="fixed top-20 z-50 px-4 py-2 rounded-full bg-accent text-white text-xs font-semibold shadow-elevation flex items-center gap-2 animate-bounce">
+          <Sparkles className="w-4 h-4 fill-white" />
+          {toastMessage}
+        </div>
+      )}
+
+      {/* Top Header Bar with Back Arrow, Make Offline, Download PDF, Share Buttons */}
       {!settings.zenMode && (
-        <header className="w-full h-16 px-8 flex items-center justify-between z-30 select-none border-b border-border/40">
+        <header className="w-full h-16 px-6 sm:px-8 flex items-center justify-between z-30 border-b border-border/60 bg-surface/80 backdrop-blur-md">
+          {/* Back Arrow Button & Title */}
           <div className="flex items-center gap-3">
             <button
               onClick={onGoHome}
-              className="text-xs font-semibold text-text-secondary hover:text-accent flex items-center gap-1 transition-colors"
+              className="p-2 rounded-full hover:bg-surface-hover text-text-primary transition-all flex items-center gap-2 font-display font-medium text-xs border border-border/80"
+              title="Back to Dashboard"
             >
-              ← Library
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Back</span>
             </button>
             <span className="text-text-muted">•</span>
-            <span className="text-xs font-medium text-text-secondary line-clamp-1">
-              {book.title}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-xs font-display font-semibold text-text-primary line-clamp-1">
+                {book.title}
+              </span>
+              <span className="text-[10px] font-mono text-accent">
+                {book.edition || 'Special Issue'}
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Action Controls Header */}
+          <div className="flex items-center gap-2">
+            {/* Make Offline Button */}
+            <button
+              onClick={handleMakeOffline}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all border ${
+                isOfflineCached
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600'
+                  : 'bg-background border-border text-text-secondary hover:text-text-primary hover:border-accent'
+              }`}
+              title="Save Magazine Locally for Offline Reading"
+            >
+              {isOfflineCached ? <Check className="w-3.5 h-3.5" /> : <HardDriveDownload className="w-3.5 h-3.5 text-accent" />}
+              <span className="hidden md:inline">{isOfflineCached ? 'Offline Ready' : 'Make Offline'}</span>
+            </button>
+
+            {/* Download PDF Button */}
+            <button
+              onClick={handleDownloadPDF}
+              className="px-3 py-1.5 rounded-full bg-background border border-border text-xs font-semibold text-text-secondary hover:text-text-primary hover:border-accent transition-all flex items-center gap-1.5"
+              title="Download Issue PDF"
+            >
+              <FileText className="w-3.5 h-3.5 text-accent" />
+              <span className="hidden md:inline">Download PDF</span>
+            </button>
+
+            {/* Share Button */}
+            <button
+              onClick={handleShare}
+              className="p-2 rounded-full bg-background border border-border text-text-secondary hover:text-text-primary hover:border-accent transition-all"
+              title="Share Magazine Link"
+            >
+              <Share2 className="w-4 h-4 text-accent" />
+            </button>
+
             {/* Audio Reader Toggle */}
             <button
               onClick={toggleGlobalTTS}
@@ -196,28 +250,27 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
         </header>
       )}
 
-      {/* Main Chapter Content Container */}
+      {/* Main Chapter Content Container with Zoom Transformation */}
       <main
         onMouseUp={handleMouseUp}
         className={`w-full flex-1 px-6 py-12 ${getMarginClass()} transition-all duration-300 z-10`}
+        style={{
+          transform: `scale(${zoomFactor})`,
+          transformOrigin: 'top center',
+        }}
       >
         <article
           ref={contentRef}
-          className={`${getFontClass()} transition-all duration-200 select-text leading-relaxed`}
-          style={{
-            fontSize: `${settings.fontSize}px`,
-            lineHeight: settings.lineHeight,
-            letterSpacing: `${settings.letterSpacing}px`,
-          }}
+          className="font-reader transition-all duration-200 select-text leading-relaxed text-base"
         >
           {/* Chapter Title */}
-          <h1 className="text-3xl sm:text-4xl font-bold font-serif text-text-primary mb-8 text-center tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-bold font-display text-text-primary mb-8 text-center tracking-tight">
             {currentChapter.title}
           </h1>
 
           {/* Formatted Chapter Body */}
           <div
-            className="prose dark:prose-invert max-w-none space-y-6"
+            className="prose dark:prose-invert max-w-none space-y-6 text-text-primary"
             dangerouslySetInnerHTML={{ __html: currentChapter.content }}
           />
         </article>

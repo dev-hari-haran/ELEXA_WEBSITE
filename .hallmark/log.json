@@ -1,0 +1,13 @@
+[
+  {
+    "date": "2026-07-31",
+    "genre": "editorial",
+    "scope": "app",
+    "design_system": "design.md",
+    "macrostructure": "Workbench",
+    "theme": "Editorial OKLCH",
+    "nav": "N1b",
+    "footer": "Ft5",
+    "brief": "Redesign website with Hallmark anti-slop editorial design system"
+  }
+]

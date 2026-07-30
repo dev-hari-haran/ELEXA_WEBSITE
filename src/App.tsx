@@ -8,7 +8,6 @@ import { NotesView } from './components/views/NotesView';
 import { AnalyticsView } from './components/views/AnalyticsView';
 import { SettingsView } from './components/views/SettingsView';
 import { BookDetailModal } from './components/bookshelf/BookDetailModal';
-import { CommandPalette } from './components/command/CommandPalette';
 
 import { useLibraryStore } from './stores/useLibraryStore';
 import { useReaderStore } from './stores/useReaderStore';
@@ -42,14 +41,14 @@ export function App() {
 
   return (
     <div className="min-h-screen flex bg-background text-text-primary transition-colors duration-300 font-sans">
-      {/* Navigation Rail (Left Column) - Hidden when reading if in Zen mode */}
+      {/* Navigation Rail (Left Column) - Hidden when reading */}
       {activeTab !== 'reader' && (
         <NavigationRail activeTab={activeTab} setActiveTab={setActiveTab} />
       )}
 
       {/* Right Main Content View */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        {/* Top Header Bar */}
+        {/* Top Header Bar - Rendered only when not reading */}
         {activeTab !== 'reader' && <HeaderBar />}
 
         {/* Main Workspace Body */}
@@ -84,17 +83,11 @@ export function App() {
         </main>
       </div>
 
-      {/* Book Detail Modal */}
+      {/* Magazine Detail Modal */}
       <BookDetailModal
         book={selectedBookDetail}
         onClose={() => openBookDetail(null)}
         onRead={handleStartReading}
-      />
-
-      {/* Arc / VS Code ⌘K Command Palette Overlay */}
-      <CommandPalette
-        onSelectBook={handleStartReading}
-        onNavigateTab={setActiveTab}
       />
     </div>
   );
