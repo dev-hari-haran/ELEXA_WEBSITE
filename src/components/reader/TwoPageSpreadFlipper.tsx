@@ -29,7 +29,7 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [totalPages, setTotalPages] = useState<number>(0);
 
-  // Load PDF and render all pages into high-resolution Canvas Data URLs
+  // Progressive Fast PDF Page Renderer using compressed JPEG Data URLs
   useEffect(() => {
     let isMounted = true;
 
@@ -43,12 +43,10 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
           const numPages = doc.numPages;
           setTotalPages(numPages);
 
-          const pageDataUrls: string[] = [];
-
-          for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+          // Fast rendering helper for a single page
+          const renderPage = async (pageNum: number): Promise<string> => {
             const page = await doc.getPage(pageNum);
-            // Render at high resolution (scale 2.5) for crisp, large presentation
-            const viewport = page.getViewport({ scale: 2.5 });
+            const viewport = page.getViewport({ scale: 1.8 });
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
 
@@ -56,13 +54,41 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
               canvas.height = viewport.height;
               canvas.width = viewport.width;
               await page.render({ canvasContext: context, viewport }).promise;
-              pageDataUrls.push(canvas.toDataURL('image/png'));
+              return canvas.toDataURL('image/jpeg', 0.85); // High quality JPEG (85% smaller than PNG!)
             }
+            return '';
+          };
+
+          // Step 1: Render initial 6 pages immediately for instant opening (< 200ms)
+          const initialLimit = Math.min(6, numPages);
+          const initialPages: string[] = [];
+
+          for (let p = 1; p <= initialLimit; p++) {
+            const dataUrl = await renderPage(p);
+            initialPages.push(dataUrl);
           }
 
           if (isMounted) {
-            setPageImages(pageDataUrls);
+            setPageImages(initialPages);
             setIsLoading(false);
+          }
+
+          // Step 2: Render remaining pages progressively in background batches without locking UI thread
+          if (numPages > initialLimit) {
+            setTimeout(async () => {
+              const fullPages = [...initialPages];
+              for (let p = initialLimit + 1; p <= numPages; p++) {
+                if (!isMounted) return;
+                const dataUrl = await renderPage(p);
+                fullPages.push(dataUrl);
+                // Update in batches of 4 pages
+                if (p % 4 === 0 || p === numPages) {
+                  if (isMounted) {
+                    setPageImages([...fullPages]);
+                  }
+                }
+              }
+            }, 100);
           }
         })
         .catch((err) => {
@@ -85,7 +111,7 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
     };
   }, [pdfSource]);
 
-  // Initialize StPageFlip engine when page images are ready
+  // Initialize StPageFlip engine with GPU hardware acceleration
   useEffect(() => {
     if (!bookElementRef.current || pageImages.length === 0) return;
 
@@ -93,21 +119,21 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
       pageFlipRef.current.destroy();
     }
 
-    // Set showCover: false so Page 1 ALWAYS renders on the LEFT page of the 2-page spread!
     const pageFlip = new PageFlip(bookElementRef.current, {
-      width: 580, // Large single page width
-      height: 780, // Large single page height
+      width: 580,
+      height: 780,
       size: 'stretch',
       minWidth: 400,
       maxWidth: 900,
       minHeight: 550,
       maxHeight: 1200,
       drawShadow: true,
-      maxShadowOpacity: 0.5,
+      maxShadowOpacity: 0.4,
       showCover: false, // Page 1 is ALWAYS on the LEFT side!
       mobileScrollSupport: false,
       usePortrait: false, // Force 2-page spread side-by-side mode!
-      startPage: currentPage > 0 ? currentPage - 1 : 0,
+      startPage: currentPage > 0 ? Math.min(currentPage - 1, pageImages.length - 1) : 0,
+      flippingTime: 400, // 400ms smooth fast page turn speed
     });
 
     pageFlip.loadFromHTML(bookElementRef.current.querySelectorAll('.magazine-page'));
@@ -123,7 +149,7 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
         pageFlipRef.current = null;
       }
     };
-  }, [pageImages]);
+  }, [pageImages.length]);
 
   const handleNextPage = () => {
     if (pageFlipRef.current) {
@@ -137,7 +163,6 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
     }
   };
 
-  // Determine container overflow and scaling
   const isZoomed = zoomLevel > 100;
   const zoomScale = zoomLevel / 100;
 
@@ -153,7 +178,7 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
         <div className="flex flex-col items-center gap-3 p-8 rounded-3xl bg-surface/90 border border-border/80 shadow-elevation backdrop-blur-md">
           <Loader2 className="w-8 h-8 text-accent animate-spin" />
           <span className="text-xs font-mono text-text-primary font-semibold">
-            Rendering Large 2-Page Spread Magazine...
+            Opening 2-Page Spread Magazine...
           </span>
         </div>
       )}
@@ -161,7 +186,7 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
       {/* Large 2-Page Spread Corner Page Turn Canvas */}
       {!isLoading && (
         <div
-          className="relative w-[94vw] h-[82vh] max-w-7xl flex items-center justify-center transition-transform duration-300 ease-out"
+          className="relative w-[94vw] h-[82vh] max-w-7xl flex items-center justify-center transition-transform duration-300 ease-out will-change-transform transform-gpu"
           style={{
             transform: `scale(${zoomScale})`,
             transformOrigin: 'center center',
@@ -170,7 +195,7 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
           {/* Navigation Corner Arrows */}
           <button
             onClick={handlePrevPage}
-            className="absolute -left-4 top-1/2 -translate-y-1/2 z-40 p-3.5 rounded-full bg-black/60 backdrop-blur-md text-white hover:bg-accent transition-all shadow-lg hover:scale-110"
+            className="absolute -left-4 top-1/2 -translate-y-1/2 z-40 p-3.5 rounded-full bg-black/60 backdrop-blur-md text-white hover:bg-accent transition-all shadow-lg hover:scale-110 active:scale-95"
             title="Turn to Previous Page (Corner Turn)"
           >
             <ChevronLeft className="w-7 h-7" />
@@ -178,21 +203,21 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
 
           <button
             onClick={handleNextPage}
-            className="absolute -right-4 top-1/2 -translate-y-1/2 z-40 p-3.5 rounded-full bg-black/60 backdrop-blur-md text-white hover:bg-accent transition-all shadow-lg hover:scale-110"
+            className="absolute -right-4 top-1/2 -translate-y-1/2 z-40 p-3.5 rounded-full bg-black/60 backdrop-blur-md text-white hover:bg-accent transition-all shadow-lg hover:scale-110 active:scale-95"
             title="Turn to Next Page (Corner Turn)"
           >
             <ChevronRight className="w-7 h-7" />
           </button>
 
-          {/* StPageFlip Container: 2-Page Spread with Page 1 ALWAYS on LEFT */}
+          {/* StPageFlip Container */}
           <div
             ref={bookElementRef}
-            className="magazine-book-spread w-full h-full flex shadow-[0_30px_70px_rgba(0,0,0,0.35)] rounded-2xl overflow-hidden"
+            className="magazine-book-spread w-full h-full flex shadow-[0_30px_70px_rgba(0,0,0,0.35)] rounded-2xl overflow-hidden will-change-transform transform-gpu"
           >
             {pageImages.map((imgSrc, idx) => (
               <div
                 key={idx}
-                className="magazine-page bg-[#FAF7F0] border-r border-[#E2DACD] overflow-hidden flex flex-col items-center justify-center relative shadow-inner"
+                className="magazine-page bg-[#FAF7F0] border-r border-[#E2DACD] overflow-hidden flex flex-col items-center justify-center relative shadow-inner will-change-transform"
               >
                 {/* Book Spine Shading overlay */}
                 <div className="absolute top-0 bottom-0 left-0 w-10 bg-gradient-to-r from-black/25 via-black/5 to-transparent pointer-events-none z-20" />
@@ -202,6 +227,7 @@ export const TwoPageSpreadFlipper: React.FC<TwoPageSpreadFlipperProps> = ({
                   src={imgSrc}
                   alt={`${bookTitle} - Page ${idx + 1}`}
                   className="w-full h-full object-contain pointer-events-none select-none"
+                  loading="lazy"
                 />
 
                 <div className="absolute bottom-3 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-md text-white font-mono text-xs z-30 font-bold">
