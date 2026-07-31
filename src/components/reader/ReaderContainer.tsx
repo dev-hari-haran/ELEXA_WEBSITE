@@ -7,7 +7,7 @@ import { TocDrawer } from './TocDrawer';
 import { ThemeSettingsPopover } from './ThemeSettingsPopover';
 import { TypographySettingsPopover } from './TypographySettingsPopover';
 import { PageSearchModal } from './PageSearchModal';
-import { PdfPageFlipper } from './PdfPageFlipper';
+import { TwoPageSpreadFlipper } from './TwoPageSpreadFlipper';
 import { ArrowLeft, FileText, Share2, HardDriveDownload, Volume2, VolumeX, Maximize2, Minimize2, Check, Sparkles } from 'lucide-react';
 import { speechService } from '../../services/speechService';
 
@@ -23,6 +23,7 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
     currentPage,
     setCurrentPage,
     settings,
+    updateSettings,
     isTocOpen,
     toggleToc,
     isSearchOpen,
@@ -53,7 +54,7 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
   const currentChapter =
     book.chapters.find((c) => c.id === activeChapterId) || book.chapters[0];
 
-  // Check if PDF source exists (Uploaded Data URL or PDF URL)
+  // PDF Source check
   const pdfSource = book.pdfDataUrl || (book.pdfUrl && book.pdfUrl.endsWith('.pdf') ? book.pdfUrl : null);
 
   // Handle text selection
@@ -152,22 +153,10 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
     showToast("Magazine link copied to clipboard!");
   };
 
-  // Margin container width helper
-  const getMarginClass = () => {
-    switch (settings.columnMargin) {
-      case 'narrow':
-        return 'max-w-2xl';
-      case 'wide':
-        return 'max-w-5xl';
-      default:
-        return 'max-w-3xl';
-    }
-  };
-
-  const zoomFactor = (settings.zoomLevel || 100) / 100;
+  const zoomLevel = settings.zoomLevel || 100;
 
   return (
-    <div className="relative min-h-screen bg-background text-text-primary transition-colors duration-300 flex flex-col items-center select-none">
+    <div className="relative h-screen w-full bg-background text-text-primary transition-colors duration-300 flex flex-col items-center select-none overflow-hidden">
       
       {/* Toast Banner */}
       {toastMessage && (
@@ -179,7 +168,7 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
 
       {/* Top Header Bar — Clean with NO Document Viewer Buttons */}
       {!settings.zenMode && (
-        <header className="w-full h-16 px-6 sm:px-8 flex items-center justify-between z-30 border-b border-border/60 bg-surface/80 backdrop-blur-md">
+        <header className="w-full h-16 px-6 sm:px-8 flex items-center justify-between z-30 border-b border-border/60 bg-surface/80 backdrop-blur-md flex-shrink-0">
           {/* Back Arrow Button & Title */}
           <div className="flex items-center gap-3">
             <button
@@ -261,39 +250,17 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
         </header>
       )}
 
-      {/* Main Body: 3D PDF Page Flipper Experience vs Editorial View */}
-      {pdfSource ? (
-        <PdfPageFlipper
+      {/* Main Body: 2-Page Spread Corner Turning Magazine Experience (Locked height, No scroll down by default) */}
+      <main className="w-full flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden z-10">
+        <TwoPageSpreadFlipper
           pdfSource={pdfSource}
+          bookTitle={book.title}
           currentPage={currentPage}
           onPageChange={(p) => setCurrentPage(p)}
-          title={book.title}
+          zoomLevel={zoomLevel}
+          onZoomChange={(z) => updateSettings({ zoomLevel: z })}
         />
-      ) : (
-        /* Editorial Text View for standard text magazines */
-        <main
-          onMouseUp={handleMouseUp}
-          className={`w-full flex-1 px-6 py-12 ${getMarginClass()} transition-all duration-300 z-10`}
-          style={{
-            transform: `scale(${zoomFactor})`,
-            transformOrigin: 'top center',
-          }}
-        >
-          <article
-            ref={contentRef}
-            className="font-reader transition-all duration-200 select-text leading-relaxed text-base"
-          >
-            <h1 className="text-3xl sm:text-4xl font-bold font-display text-text-primary mb-8 text-center tracking-tight">
-              {currentChapter.title}
-            </h1>
-
-            <div
-              className="prose dark:prose-invert max-w-none space-y-6 text-text-primary"
-              dangerouslySetInnerHTML={{ __html: currentChapter.content }}
-            />
-          </article>
-        </main>
-      )}
+      </main>
 
       {/* Floating Selection Toolbar Popup */}
       <TextSelectionMenu
@@ -303,7 +270,7 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
         onClose={() => setSelectionMenuPos(null)}
       />
 
-      {/* Bottom Floating Pill Control Toolbar (Hidden in Zen Mode) */}
+      {/* Bottom Floating Pill Control Toolbar */}
       {!settings.zenMode && (
         <FloatingToolbar
           onGoHome={onGoHome}
