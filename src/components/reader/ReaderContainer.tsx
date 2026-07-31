@@ -7,7 +7,7 @@ import { TocDrawer } from './TocDrawer';
 import { ThemeSettingsPopover } from './ThemeSettingsPopover';
 import { TypographySettingsPopover } from './TypographySettingsPopover';
 import { PageSearchModal } from './PageSearchModal';
-import { ArrowLeft, FileText, Share2, HardDriveDownload, Volume2, VolumeX, Maximize2, Minimize2, Check, Sparkles, BookOpen, Layers, ExternalLink } from 'lucide-react';
+import { ArrowLeft, FileText, Share2, HardDriveDownload, Volume2, VolumeX, Maximize2, Minimize2, Check, Sparkles } from 'lucide-react';
 import { speechService } from '../../services/speechService';
 
 interface ReaderContainerProps {
@@ -40,7 +40,6 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
   const [selectionMenuPos, setSelectionMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [selectedText, setSelectedText] = useState('');
   const [isOfflineCached, setIsOfflineCached] = useState(false);
-  const [readerViewMode, setReaderViewMode] = useState<'editorial' | 'pdf_viewer'>('editorial');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -167,7 +166,7 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
         </div>
       )}
 
-      {/* Top Header Bar with Back Arrow, Reader Mode Switcher, PDF View, Offline, Share */}
+      {/* Top Header Bar with Back Arrow, Title, Offline, Download PDF, Share */}
       {!settings.zenMode && (
         <header className="w-full h-16 px-6 sm:px-8 flex items-center justify-between z-30 border-b border-border/60 bg-surface/80 backdrop-blur-md">
           {/* Back Arrow Button & Title */}
@@ -189,30 +188,6 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
                 {book.edition || 'Special Magazine'}
               </span>
             </div>
-          </div>
-
-          {/* Center Mode Switcher: Editorial Text vs PDF Viewer */}
-          <div className="hidden md:flex items-center gap-1 p-1 rounded-xl bg-background border border-border/80">
-            <button
-              onClick={() => setReaderViewMode('editorial')}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                readerViewMode === 'editorial'
-                  ? 'bg-accent text-white shadow-sm'
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" /> Editorial View
-            </button>
-            <button
-              onClick={() => setReaderViewMode('pdf_viewer')}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                readerViewMode === 'pdf_viewer'
-                  ? 'bg-accent text-white shadow-sm'
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5" /> PDF Document Reader
-            </button>
           </div>
 
           {/* Action Controls Header */}
@@ -275,96 +250,31 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
         </header>
       )}
 
-      {/* Main Content Area: PDF Viewer Mode vs Editorial Text Mode */}
-      {readerViewMode === 'pdf_viewer' ? (
-        <main className="w-full flex-1 p-6 flex flex-col items-center justify-center z-10 max-w-6xl">
-          <div className="w-full h-[82vh] rounded-3xl bg-surface border border-border/80 shadow-elevation overflow-hidden flex flex-col">
-            <div className="px-6 py-3 bg-background border-b border-border/60 flex items-center justify-between">
-              <span className="text-xs font-mono text-text-primary font-semibold flex items-center gap-2">
-                <FileText className="w-4 h-4 text-accent" />
-                {book.pdfUrl ? `PDF Document: ${book.pdfUrl}` : `${book.title} (Digital PDF Edition)`}
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                  High Resolution PDF Active
-                </span>
-                <button
-                  onClick={handleDownloadPDF}
-                  className="text-xs text-accent hover:underline flex items-center gap-1 font-semibold"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" /> Fullscreen PDF
-                </button>
-              </div>
-            </div>
-
-            {/* Embedded PDF Viewer Container */}
-            <div className="w-full flex-1 bg-neutral-900 flex items-center justify-center p-4">
-              <div className="w-full h-full rounded-xl bg-white shadow-2xl overflow-hidden flex flex-col items-center justify-center text-slate-800 p-8 text-center relative">
-                {/* Embedded Magazine PDF Cover & Page Frame */}
-                <div className="flex flex-col items-center gap-4 max-w-lg">
-                  <img
-                    src={book.coverImage}
-                    alt={book.title}
-                    className="w-48 h-64 object-cover rounded-xl shadow-2xl border-4 border-slate-200"
-                  />
-                  <div className="flex flex-col gap-1">
-                    <h2 className="text-xl font-display font-bold text-slate-900">
-                      {book.title}
-                    </h2>
-                    <span className="text-xs font-mono text-slate-500">
-                      {book.edition || 'PDF Magazine Edition'} • {book.author}
-                    </span>
-                    <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                      Interactive vector PDF document loaded into Elexa Reading Engine.
-                    </p>
-                  </div>
-
-                  <div className="flex gap-3 mt-2">
-                    <button
-                      onClick={() => setReaderViewMode('editorial')}
-                      className="px-5 py-2.5 rounded-full bg-accent text-white font-semibold text-xs shadow-md hover:bg-accent-hover transition-colors"
-                    >
-                      Switch to Editorial Text View
-                    </button>
-                    <button
-                      onClick={handleDownloadPDF}
-                      className="px-5 py-2.5 rounded-full bg-slate-900 text-white font-semibold text-xs shadow-md hover:bg-slate-800 transition-colors"
-                    >
-                      Open PDF Print Preview
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-      ) : (
-        /* Editorial Text View */
-        <main
-          onMouseUp={handleMouseUp}
-          className={`w-full flex-1 px-6 py-12 ${getMarginClass()} transition-all duration-300 z-10`}
-          style={{
-            transform: `scale(${zoomFactor})`,
-            transformOrigin: 'top center',
-          }}
+      {/* Main Editorial Text View */}
+      <main
+        onMouseUp={handleMouseUp}
+        className={`w-full flex-1 px-6 py-12 ${getMarginClass()} transition-all duration-300 z-10`}
+        style={{
+          transform: `scale(${zoomFactor})`,
+          transformOrigin: 'top center',
+        }}
+      >
+        <article
+          ref={contentRef}
+          className="font-reader transition-all duration-200 select-text leading-relaxed text-base"
         >
-          <article
-            ref={contentRef}
-            className="font-reader transition-all duration-200 select-text leading-relaxed text-base"
-          >
-            {/* Chapter Title */}
-            <h1 className="text-3xl sm:text-4xl font-bold font-display text-text-primary mb-8 text-center tracking-tight">
-              {currentChapter.title}
-            </h1>
+          {/* Chapter Title */}
+          <h1 className="text-3xl sm:text-4xl font-bold font-display text-text-primary mb-8 text-center tracking-tight">
+            {currentChapter.title}
+          </h1>
 
-            {/* Formatted Chapter Body */}
-            <div
-              className="prose dark:prose-invert max-w-none space-y-6 text-text-primary"
-              dangerouslySetInnerHTML={{ __html: currentChapter.content }}
-            />
-          </article>
-        </main>
-      )}
+          {/* Formatted Chapter Body */}
+          <div
+            className="prose dark:prose-invert max-w-none space-y-6 text-text-primary"
+            dangerouslySetInnerHTML={{ __html: currentChapter.content }}
+          />
+        </article>
+      </main>
 
       {/* Floating Selection Toolbar Popup */}
       <TextSelectionMenu
