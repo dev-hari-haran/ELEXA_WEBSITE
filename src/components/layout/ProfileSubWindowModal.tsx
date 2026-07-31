@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, UserCheck, Search, LogOut, Key, CheckCircle, Mail, Sparkles, ShieldCheck } from 'lucide-react';
+import { X, UserCheck, Search, LogOut, Key, CheckCircle, Mail, Sparkles, ShieldCheck, User } from 'lucide-react';
 
 interface ProfileSubWindowModalProps {
   isOpen: boolean;
@@ -8,6 +8,8 @@ interface ProfileSubWindowModalProps {
 }
 
 export const ProfileSubWindowModal: React.FC<ProfileSubWindowModalProps> = ({ isOpen, onClose, onOpenAdmin }) => {
+  const [userName, setUserName] = useState('Production Account');
+  const [userEmail, setUserEmail] = useState('user@elexa.magazine');
   const [designation, setDesignation] = useState<'Author' | 'Reader'>('Author');
   const [referralCode, setReferralCode] = useState('ELEXA-VIP-7892');
   const [referralStatus, setReferralStatus] = useState<string | null>(null);
@@ -23,7 +25,7 @@ export const ProfileSubWindowModal: React.FC<ProfileSubWindowModalProps> = ({ is
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
       <div 
-        className="w-full max-w-md bg-surface border border-border rounded-3xl shadow-elevation overflow-hidden flex flex-col"
+        className="w-full max-w-md bg-surface border border-border rounded-3xl shadow-elevation overflow-hidden flex flex-col select-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -42,20 +44,26 @@ export const ProfileSubWindowModal: React.FC<ProfileSubWindowModalProps> = ({ is
 
         {/* Content Body */}
         <div className="p-6 flex flex-col gap-6">
-          {/* Avatar & User Details */}
+          {/* Avatar & Production User Details (No Sample Photo) */}
           <div className="flex items-center gap-4">
-            <img
-              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop"
-              alt="Alexander Mark"
-              className="w-16 h-16 rounded-full object-cover ring-4 ring-accent/20 shadow-md"
-            />
+            <div className="w-16 h-16 rounded-2xl bg-accent/10 border-2 border-accent/30 text-accent flex items-center justify-center shadow-md">
+              <User className="w-8 h-8" />
+            </div>
             <div className="flex flex-col">
-              <h3 className="text-lg font-display font-semibold text-text-primary">
-                Alexander Mark
-              </h3>
+              <input
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                className="text-lg font-display font-semibold text-text-primary bg-transparent focus:outline-none focus:border-b border-accent"
+              />
               <div className="flex items-center gap-1.5 text-xs text-text-muted mt-0.5">
                 <Mail className="w-3.5 h-3.5" />
-                alexander.mark@elexa.magazine
+                <input
+                  type="email"
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
+                  className="bg-transparent text-text-muted focus:outline-none focus:text-text-primary"
+                />
               </div>
               <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent/10 text-accent text-[11px] font-mono font-medium w-fit">
                 <Sparkles className="w-3 h-3 fill-accent" /> {designation} Account
@@ -70,7 +78,7 @@ export const ProfileSubWindowModal: React.FC<ProfileSubWindowModalProps> = ({ is
                 onClose();
                 onOpenAdmin();
               }}
-              className="w-full p-3 rounded-2xl bg-accent-light/40 border border-accent/30 hover:border-accent text-accent font-semibold text-xs flex items-center justify-between transition-all group"
+              className="w-full p-3.5 rounded-2xl bg-accent-light/40 border border-accent/30 hover:border-accent text-accent font-semibold text-xs flex items-center justify-between transition-all group"
             >
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-accent" />
@@ -122,7 +130,7 @@ export const ProfileSubWindowModal: React.FC<ProfileSubWindowModalProps> = ({ is
                   type="text"
                   value={referralCode}
                   onChange={(e) => setReferralCode(e.target.value)}
-                  placeholder="e.g. ELEXA-REF-1234"
+                  placeholder="Enter referral code"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent font-mono uppercase"
                 />
               </div>

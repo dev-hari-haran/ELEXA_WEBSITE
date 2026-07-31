@@ -48,8 +48,8 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
     if (!newCommentText.trim()) return;
     const newEntry = {
       id: `comment-${Date.now()}`,
-      name: 'Alexander Mark',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop',
+      name: 'Production Reader',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop',
       bookId: currentReadingBook.id,
       bookTitle: currentReadingBook.title,
       chapterTitle: 'Issue Review',
@@ -65,17 +65,17 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
       {/* Left Main Content Column */}
       <div className="flex-1 flex flex-col gap-10">
         
-        {/* Main Hero Banner — No Progress Bar, No Editorial Badge, No Page Numbers */}
+        {/* Main Hero Banner — Clean Production Heading */}
         <div className="p-8 rounded-3xl bg-surface border border-border/80 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="absolute top-0 right-0 w-96 h-96 bg-accent-light/40 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
 
           <div className="flex flex-col gap-4 max-w-md z-10">
             <h1 className="text-3xl sm:text-4xl font-display font-semibold text-text-primary leading-[1.15] tracking-tight">
-              Happy reading, <br />
-              <span className="text-accent italic font-normal">Harvey</span>
+              Welcome to <br />
+              <span className="text-accent italic font-normal">ELEXA Magazine Hub</span>
             </h1>
             <p className="text-sm text-text-secondary leading-relaxed">
-              Immerse yourself in the latest magazines, editorial features, and curated digital columns.
+              Immerse yourself in the latest digital magazines, editorial features, and curated digital columns.
             </p>
 
             <div className="flex items-center gap-4 mt-2">
@@ -88,7 +88,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
             </div>
           </div>
 
-          {/* Magazine Cover Card Graphic (No Progress Bar) */}
+          {/* Magazine Cover Card Graphic */}
           <div className="relative z-10 transform hover:scale-105 transition-transform duration-500 cursor-pointer" onClick={() => onReadBook(currentReadingBook)}>
             <div className="w-64 h-44 rounded-xl bg-background border border-border/80 shadow-2xl p-4 flex items-center gap-4 transform rotate-1">
               <img
@@ -113,7 +113,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Popular Now Section — Tabs: Most Popular / Last Read, No Progress Bars */}
+        {/* Popular Now Section */}
         <div className="flex flex-col gap-5">
           <div className="flex items-center justify-between border-b border-border/60 pb-3">
             <h2 className="text-xl font-display font-bold text-text-primary">
@@ -244,7 +244,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Upcoming Magazines Grid — Wishlist Button */}
+        {/* Upcoming Magazines Grid */}
         <div className="flex flex-col gap-5">
           <div className="flex items-center justify-between border-b border-border/60 pb-3">
             <h2 className="text-xl font-display font-bold text-text-primary flex items-center gap-2">
@@ -312,7 +312,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
       {/* Right Sidebar Column */}
       <div className="w-full xl:w-80 flex flex-col gap-8">
         
-        {/* Announcements Section (Conditionally rendered if announcements exist) */}
+        {/* Announcements Section (STRICTLY HIDDEN if count is 0) */}
         {announcements.length > 0 && (
           <div className="p-6 rounded-3xl bg-surface border border-border/80 shadow-sm flex flex-col gap-4">
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
