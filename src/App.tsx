@@ -7,6 +7,7 @@ import { ReaderContainer } from './components/reader/ReaderContainer';
 import { NotesView } from './components/views/NotesView';
 import { AnalyticsView } from './components/views/AnalyticsView';
 import { SettingsView } from './components/views/SettingsView';
+import { AdminView } from './components/views/AdminView';
 import { BookDetailModal } from './components/bookshelf/BookDetailModal';
 
 import { useLibraryStore } from './stores/useLibraryStore';
@@ -17,7 +18,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Book } from './types/book';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'library' | 'reader' | 'analytics' | 'notes' | 'settings'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'library' | 'reader' | 'analytics' | 'notes' | 'settings' | 'admin'>('home');
   const { books, selectedBookDetail, openBookDetail } = useLibraryStore();
   const { activeBookId, setActiveBook } = useReaderStore();
   const { theme } = useThemeStore();
@@ -76,6 +77,8 @@ export function App() {
           )}
 
           {activeTab === 'notes' && <NotesView />}
+
+          {activeTab === 'admin' && <AdminView />}
 
           {activeTab === 'analytics' && <AnalyticsView />}
 

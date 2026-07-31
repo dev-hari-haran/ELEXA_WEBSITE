@@ -65,11 +65,18 @@ export interface Book {
   progressPercentage: number;
   rating: number;
   likesCount?: number;
+  viewsCount?: number;
+  bookmarksCount?: number;
+  commentsCount?: number;
   isWishlisted?: boolean;
   publicationYear: number;
   chapters: Chapter[];
   isFavorite: boolean;
   isUpcoming?: boolean;
+  isScheduled?: boolean;
+  scheduledReleaseDate?: string;
+  coverMode?: 'first_page' | 'custom';
+  pdfUrl?: string;
   readingStatus: 'reading' | 'completed' | 'want_to_read';
   lastReadAt: string;
 }

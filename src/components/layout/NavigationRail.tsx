@@ -1,9 +1,9 @@
 import React from 'react';
-import { Home, BookOpen, Bookmark, Settings, Layers } from 'lucide-react';
+import { Home, BookOpen, Bookmark, Settings, Layers, ShieldCheck } from 'lucide-react';
 
 interface NavigationRailProps {
-  activeTab: 'home' | 'library' | 'reader' | 'analytics' | 'notes' | 'settings';
-  setActiveTab: (tab: 'home' | 'library' | 'reader' | 'analytics' | 'notes' | 'settings') => void;
+  activeTab: 'home' | 'library' | 'reader' | 'analytics' | 'notes' | 'settings' | 'admin';
+  setActiveTab: (tab: 'home' | 'library' | 'reader' | 'analytics' | 'notes' | 'settings' | 'admin') => void;
 }
 
 export const NavigationRail: React.FC<NavigationRailProps> = ({ activeTab, setActiveTab }) => {
@@ -12,6 +12,7 @@ export const NavigationRail: React.FC<NavigationRailProps> = ({ activeTab, setAc
     { id: 'library', label: 'Magazine Library', icon: Layers },
     { id: 'reader', label: 'Magazine Reader', icon: BookOpen },
     { id: 'notes', label: 'Bookmarks & Notes', icon: Bookmark },
+    { id: 'admin', label: 'Admin Studio', icon: ShieldCheck },
     { id: 'settings', label: 'Settings', icon: Settings },
   ] as const;
 

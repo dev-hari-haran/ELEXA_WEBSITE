@@ -14,6 +14,9 @@ interface LibraryState {
 
   // Actions
   setBooks: (books: Book[]) => void;
+  addBook: (book: Book) => void;
+  updateBook: (bookId: string, updatedFields: Partial<Book>) => void;
+  deleteBook: (bookId: string) => void;
   setCategory: (category: string | null) => void;
   setCollection: (collection: string | null) => void;
   openBookDetail: (book: Book | null) => void;
@@ -36,6 +39,15 @@ export const useLibraryStore = create<LibraryState>()(
       sortBy: 'recent',
 
       setBooks: (books) => set({ books }),
+      addBook: (newBook) => set((state) => ({ books: [newBook, ...state.books] })),
+      updateBook: (bookId, updatedFields) =>
+        set((state) => ({
+          books: state.books.map((b) => (b.id === bookId ? { ...b, ...updatedFields } : b)),
+        })),
+      deleteBook: (bookId) =>
+        set((state) => ({
+          books: state.books.filter((b) => b.id !== bookId),
+        })),
       setCategory: (category) => set({ selectedCategory: category }),
       setCollection: (collection) => set({ selectedCollection: collection }),
       openBookDetail: (book) => set({ selectedBookDetail: book }),
