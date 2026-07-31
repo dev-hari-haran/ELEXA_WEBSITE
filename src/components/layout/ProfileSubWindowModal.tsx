@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { X, UserCheck, Search, LogOut, Award, Key, CheckCircle, Mail, Sparkles } from 'lucide-react';
+import { X, UserCheck, Search, LogOut, Key, CheckCircle, Mail, Sparkles, ShieldCheck } from 'lucide-react';
 
 interface ProfileSubWindowModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenAdmin?: () => void;
 }
 
-export const ProfileSubWindowModal: React.FC<ProfileSubWindowModalProps> = ({ isOpen, onClose }) => {
+export const ProfileSubWindowModal: React.FC<ProfileSubWindowModalProps> = ({ isOpen, onClose, onOpenAdmin }) => {
   const [designation, setDesignation] = useState<'Author' | 'Reader'>('Author');
   const [referralCode, setReferralCode] = useState('ELEXA-VIP-7892');
   const [referralStatus, setReferralStatus] = useState<string | null>(null);
@@ -61,6 +62,23 @@ export const ProfileSubWindowModal: React.FC<ProfileSubWindowModalProps> = ({ is
               </div>
             </div>
           </div>
+
+          {/* Standalone Admin Studio Button */}
+          {onOpenAdmin && (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenAdmin();
+              }}
+              className="w-full p-3 rounded-2xl bg-accent-light/40 border border-accent/30 hover:border-accent text-accent font-semibold text-xs flex items-center justify-between transition-all group"
+            >
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-accent" />
+                <span>Launch Separate Admin Studio Portal</span>
+              </div>
+              <span className="font-mono text-[10px] uppercase font-bold group-hover:translate-x-1 transition-transform">Enter →</span>
+            </button>
+          )}
 
           {/* Designation Toggle */}
           <div className="flex flex-col gap-2">

@@ -4,7 +4,11 @@ import { useOfflineStatus } from '../../hooks/useOfflineStatus';
 import { ProfileSubWindowModal } from './ProfileSubWindowModal';
 import { MOCK_ANNOUNCEMENTS } from '../../data/mockAnnouncements';
 
-export const HeaderBar: React.FC = () => {
+interface HeaderBarProps {
+  onOpenAdmin?: () => void;
+}
+
+export const HeaderBar: React.FC<HeaderBarProps> = ({ onOpenAdmin }) => {
   const { isOnline } = useOfflineStatus();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -115,6 +119,7 @@ export const HeaderBar: React.FC = () => {
       <ProfileSubWindowModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
+        onOpenAdmin={onOpenAdmin}
       />
     </header>
   );

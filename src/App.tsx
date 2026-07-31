@@ -40,6 +40,11 @@ export function App() {
     setActiveTab('reader');
   };
 
+  // If Admin tab is active, render standalone Admin Studio Portal
+  if (activeTab === 'admin') {
+    return <AdminView onExitAdmin={() => setActiveTab('home')} />;
+  }
+
   return (
     <div className="min-h-screen flex bg-background text-text-primary transition-colors duration-300 font-sans">
       {/* Navigation Rail (Left Column) - Hidden when reading */}
@@ -50,7 +55,7 @@ export function App() {
       {/* Right Main Content View */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
         {/* Top Header Bar - Rendered only when not reading */}
-        {activeTab !== 'reader' && <HeaderBar />}
+        {activeTab !== 'reader' && <HeaderBar onOpenAdmin={() => setActiveTab('admin')} />}
 
         {/* Main Workspace Body */}
         <main className={`flex-1 flex flex-col ${activeTab === 'reader' ? '' : 'px-8 pb-12'}`}>
@@ -77,8 +82,6 @@ export function App() {
           )}
 
           {activeTab === 'notes' && <NotesView />}
-
-          {activeTab === 'admin' && <AdminView />}
 
           {activeTab === 'analytics' && <AnalyticsView />}
 
