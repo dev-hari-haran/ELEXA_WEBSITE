@@ -319,7 +319,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Vogue Magazine: Architectural Arcana"
+              placeholder="Magazine Title"
               className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
@@ -330,7 +330,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
               type="text"
               value={edition}
               onChange={(e) => setEdition(e.target.value)}
-              placeholder="e.g. Magazine #45 — Autumn 2026"
+              placeholder="Magazine Edition Tag"
               className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
@@ -356,7 +356,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
               type="text"
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
-              placeholder="e.g. Special Collectors Edition"
+              placeholder="Magazine Subtitle"
               className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
@@ -368,7 +368,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Write a brief overview of the magazine content..."
+            placeholder="Overview of magazine content..."
             className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
