@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Book } from '../../types/book';
 import { useReaderStore } from '../../stores/useReaderStore';
 import { FloatingToolbar } from './FloatingToolbar';
@@ -7,7 +7,8 @@ import { TocDrawer } from './TocDrawer';
 import { ThemeSettingsPopover } from './ThemeSettingsPopover';
 import { TypographySettingsPopover } from './TypographySettingsPopover';
 import { PageSearchModal } from './PageSearchModal';
-import { ArrowLeft, FileText, Share2, HardDriveDownload, Volume2, VolumeX, Maximize2, Minimize2, Check, Sparkles, BookOpen, ExternalLink } from 'lucide-react';
+import { PdfPageFlipper } from './PdfPageFlipper';
+import { ArrowLeft, FileText, Share2, HardDriveDownload, Volume2, VolumeX, Maximize2, Minimize2, Check, Sparkles } from 'lucide-react';
 import { speechService } from '../../services/speechService';
 
 interface ReaderContainerProps {
@@ -43,16 +44,6 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Reader View Mode: Default to 'pdf' if a PDF data URL exists, otherwise 'editorial'
-  const hasPdf = Boolean(book.pdfDataUrl || (book.pdfUrl && book.pdfUrl.endsWith('.pdf')));
-  const [viewMode, setViewMode] = useState<'pdf' | 'editorial'>(hasPdf ? 'pdf' : 'editorial');
-
-  useEffect(() => {
-    if (book.pdfDataUrl) {
-      setViewMode('pdf');
-    }
-  }, [book.id, book.pdfDataUrl]);
-
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
@@ -61,6 +52,9 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
   // Active Chapter lookup
   const currentChapter =
     book.chapters.find((c) => c.id === activeChapterId) || book.chapters[0];
+
+  // Check if PDF source exists (Uploaded Data URL or PDF URL)
+  const pdfSource = book.pdfDataUrl || (book.pdfUrl && book.pdfUrl.endsWith('.pdf') ? book.pdfUrl : null);
 
   // Handle text selection
   const handleMouseUp = () => {
@@ -183,7 +177,7 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
         </div>
       )}
 
-      {/* Top Header Bar */}
+      {/* Top Header Bar — Clean with NO Document Viewer Buttons */}
       {!settings.zenMode && (
         <header className="w-full h-16 px-6 sm:px-8 flex items-center justify-between z-30 border-b border-border/60 bg-surface/80 backdrop-blur-md">
           {/* Back Arrow Button & Title */}
@@ -206,32 +200,6 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
               </span>
             </div>
           </div>
-
-          {/* Center Mode Switcher if PDF is present */}
-          {hasPdf && (
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-background border border-border/80">
-              <button
-                onClick={() => setViewMode('pdf')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  viewMode === 'pdf'
-                    ? 'bg-accent text-white shadow-sm'
-                    : 'text-text-secondary hover:text-text-primary'
-                }`}
-              >
-                <FileText className="w-3.5 h-3.5" /> PDF Document
-              </button>
-              <button
-                onClick={() => setViewMode('editorial')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  viewMode === 'editorial'
-                    ? 'bg-accent text-white shadow-sm'
-                    : 'text-text-secondary hover:text-text-primary'
-                }`}
-              >
-                <BookOpen className="w-3.5 h-3.5" /> Editorial Text
-              </button>
-            </div>
-          )}
 
           {/* Action Controls Header */}
           <div className="flex items-center gap-2">
@@ -293,38 +261,16 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
         </header>
       )}
 
-      {/* Main Body: PDF iFrame Viewer vs Editorial View */}
-      {viewMode === 'pdf' && (book.pdfDataUrl || book.pdfUrl) ? (
-        <main className="w-full flex-1 p-6 flex flex-col items-center justify-center z-10 max-w-6xl">
-          <div className="w-full h-[84vh] rounded-3xl bg-surface border border-border/80 shadow-elevation overflow-hidden flex flex-col">
-            <div className="px-6 py-3 bg-background border-b border-border/60 flex items-center justify-between">
-              <span className="text-xs font-mono text-text-primary font-semibold flex items-center gap-2">
-                <FileText className="w-4 h-4 text-accent" />
-                {book.pdfUrl || `${book.title}.pdf`}
-              </span>
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] font-mono text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-bold">
-                  PDF Document Loaded
-                </span>
-                <button
-                  onClick={handleDownloadPDF}
-                  className="text-xs text-accent hover:underline flex items-center gap-1 font-semibold"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" /> Download / Print PDF
-                </button>
-              </div>
-            </div>
-
-            {/* Real PDF iFrame Reader */}
-            <iframe
-              src={book.pdfDataUrl || book.pdfUrl}
-              className="w-full flex-1 border-none bg-white"
-              title={book.title}
-            />
-          </div>
-        </main>
+      {/* Main Body: 3D PDF Page Flipper Experience vs Editorial View */}
+      {pdfSource ? (
+        <PdfPageFlipper
+          pdfSource={pdfSource}
+          currentPage={currentPage}
+          onPageChange={(p) => setCurrentPage(p)}
+          title={book.title}
+        />
       ) : (
-        /* Editorial Text View */
+        /* Editorial Text View for standard text magazines */
         <main
           onMouseUp={handleMouseUp}
           className={`w-full flex-1 px-6 py-12 ${getMarginClass()} transition-all duration-300 z-10`}
@@ -337,12 +283,10 @@ export const ReaderContainer: React.FC<ReaderContainerProps> = ({ book, onGoHome
             ref={contentRef}
             className="font-reader transition-all duration-200 select-text leading-relaxed text-base"
           >
-            {/* Chapter Title */}
             <h1 className="text-3xl sm:text-4xl font-bold font-display text-text-primary mb-8 text-center tracking-tight">
               {currentChapter.title}
             </h1>
 
-            {/* Formatted Chapter Body */}
             <div
               className="prose dark:prose-invert max-w-none space-y-6 text-text-primary"
               dangerouslySetInnerHTML={{ __html: currentChapter.content }}
