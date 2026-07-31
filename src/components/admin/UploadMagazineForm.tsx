@@ -38,6 +38,9 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
 
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
 
+  // PDF Data URL State
+  const [pdfDataUrl, setPdfDataUrl] = useState<string | null>(null);
+
   // File Upload Handler (PDF)
   const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -49,6 +52,13 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
       if (coverMode === 'first_page') {
         setCustomCoverUrl('https://images.unsplash.com/photo-1618663741645-9d1678d71680?q=80&w=800&auto=format&fit=crop');
       }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setPdfDataUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -142,6 +152,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
       scheduledReleaseDate: publishMode === 'schedule' ? `${scheduledDate} ${scheduledTime}` : undefined,
       coverMode,
       pdfUrl: pdfFileName || 'sample_magazine.pdf',
+      pdfDataUrl: pdfDataUrl || undefined,
       readingStatus: 'want_to_read',
       lastReadAt: new Date().toISOString(),
     };

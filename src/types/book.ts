@@ -77,6 +77,7 @@ export interface Book {
   scheduledReleaseDate?: string;
   coverMode?: 'first_page' | 'custom';
   pdfUrl?: string;
+  pdfDataUrl?: string;
   readingStatus: 'reading' | 'completed' | 'want_to_read';
   lastReadAt: string;
 }
