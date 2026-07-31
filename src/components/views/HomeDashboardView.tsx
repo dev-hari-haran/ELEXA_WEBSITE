@@ -75,7 +75,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
               <span className="text-accent italic font-normal">Harvey</span>
             </h1>
             <p className="text-sm text-text-secondary leading-relaxed">
-              Immerse yourself in the latest magazine issues, editorial features, and curated digital columns.
+              Immerse yourself in the latest magazines, editorial features, and curated digital columns.
             </p>
 
             <div className="flex items-center gap-4 mt-2">

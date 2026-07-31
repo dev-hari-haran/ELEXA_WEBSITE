@@ -76,24 +76,6 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onRead, onDetail, feat
           </span>
         </div>
 
-        {/* Reading Progress Overlay Pill */}
-        {book.progressPercentage > 0 && (
-          <div className="absolute bottom-3 left-3 right-3 z-10">
-            <div className="px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur-md text-white flex flex-col gap-1 shadow-md">
-              <div className="flex justify-between items-center text-[10px] font-medium">
-                <span>{book.progressPercentage === 100 ? 'Completed' : `${book.progressPercentage}%`}</span>
-                <span>{book.currentPage} / {book.totalPages} p</span>
-              </div>
-              <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-accent rounded-full transition-all duration-300"
-                  style={{ width: `${book.progressPercentage}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Quick Read Hover CTA */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center pointer-events-none">
           <button

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { UploadCloud, FileText, Image as ImageIcon, Calendar, Clock, CheckCircle2, UserCheck, Sparkles, Tag, Plus, X } from 'lucide-react';
+import { UploadCloud, FileText, Image as ImageIcon, Calendar, Clock, CheckCircle2, UserCheck, Sparkles, Plus, X, Upload } from 'lucide-react';
 import { useLibraryStore } from '../../stores/useLibraryStore';
+import { useReaderStore } from '../../stores/useReaderStore';
 import { Book } from '../../types/book';
-import { MOCK_AUTHORS } from '../../data/mockAuthors';
 
 interface UploadMagazineFormProps {
   onSuccess?: () => void;
@@ -10,6 +10,7 @@ interface UploadMagazineFormProps {
 
 export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSuccess }) => {
   const { addBook } = useLibraryStore();
+  const { setActiveBook } = useReaderStore();
 
   // Form State
   const [pdfFileName, setPdfFileName] = useState<string | null>(null);
@@ -22,6 +23,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
   // Cover Mode
   const [coverMode, setCoverMode] = useState<'first_page' | 'custom'>('custom');
   const [customCoverUrl, setCustomCoverUrl] = useState('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop');
+  const [coverFileName, setCoverFileName] = useState<string | null>(null);
 
   // Authors & Editors
   const [selectedAuthors, setSelectedAuthors] = useState<string[]>(['J.K. Rowling']);
@@ -36,7 +38,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
 
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
 
-  // File Upload Handler (Simulated PDF parsing)
+  // File Upload Handler (PDF)
   const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -45,9 +47,23 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
         setTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '));
       }
       if (coverMode === 'first_page') {
-        // Auto mock cover from first page preview
         setCustomCoverUrl('https://images.unsplash.com/photo-1618663741645-9d1678d71680?q=80&w=800&auto=format&fit=crop');
       }
+    }
+  };
+
+  // Image File Upload Handler (Custom Cover Image)
+  const handleCoverImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCoverFileName(file.name);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setCustomCoverUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -80,11 +96,11 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
       return;
     }
 
-    const newIssue: Book = {
-      id: `issue-${Date.now()}`,
+    const newMagazine: Book = {
+      id: `mag-${Date.now()}`,
       title,
       subtitle: subtitle || 'Special Editorial Edition',
-      edition: edition || 'Issue #45 — 2026',
+      edition: edition || 'Magazine #45 — 2026',
       author: selectedAuthors.join(', ') || 'Elexa Editorial Team',
       authorBio: 'Featured magazine author on Elexa Platform.',
       authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
@@ -92,19 +108,19 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
         ? 'https://images.unsplash.com/photo-1618663741645-9d1678d71680?q=80&w=800&auto=format&fit=crop'
         : (customCoverUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop'),
       spineColor: '#1E4D3B',
-      description: description || 'High-gloss digital issue exploring modern design and literary arts.',
+      description: description || 'High-gloss digital magazine exploring modern design, literature, and architectural arts.',
       category,
       collection: 'Editorial Series',
       editors: selectedEditors,
       language: 'English',
-      format: 'PDF Digital Issue',
+      format: 'PDF Digital Magazine',
       isbn: `978-0-${Math.floor(100000 + Math.random() * 900000)}`,
       totalPages: 120,
       currentPage: 0,
       currentChapterId: 'ch-1',
       progressPercentage: 0,
       rating: 5.0,
-      likesCount: 0,
+      likesCount: 1,
       viewsCount: 1,
       bookmarksCount: 0,
       commentsCount: 0,
@@ -113,11 +129,11 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
       chapters: [
         {
           id: 'ch-1',
-          title: 'Editor\'s Opening Keynote',
+          title: 'Opening Feature: Keynote Editorial',
           order: 1,
           wordCount: 2400,
           estimatedMinutes: 10,
-          content: `<p>Welcome to this special edition of ${title}. In this issue, we explore groundbreaking perspectives in modern literature and architectural design...</p>`
+          content: `<p>Welcome to this special digital edition of ${title}. In this magazine, we explore groundbreaking perspectives in modern literature and architectural design...</p>`
         }
       ],
       isFavorite: false,
@@ -125,14 +141,17 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
       isScheduled: publishMode === 'schedule',
       scheduledReleaseDate: publishMode === 'schedule' ? `${scheduledDate} ${scheduledTime}` : undefined,
       coverMode,
-      pdfUrl: pdfFileName || 'magazine_issue_sample.pdf',
+      pdfUrl: pdfFileName || 'sample_magazine.pdf',
       readingStatus: 'want_to_read',
       lastReadAt: new Date().toISOString(),
     };
 
-    addBook(newIssue);
+    // Add magazine to library store & set as active reader magazine across whole site!
+    addBook(newMagazine);
+    setActiveBook(newMagazine.id);
+
     const msg = publishMode === 'now' 
-      ? `"${title}" published successfully to Magazine Library!`
+      ? `"${title}" uploaded! Cover & PDF viewer updated across the entire website.`
       : `"${title}" scheduled for release on ${scheduledDate} at ${scheduledTime}!`;
 
     setNotificationMsg(msg);
@@ -157,7 +176,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
           <UploadCloud className="w-5 h-5 text-accent" />
           <h3 className="font-display font-semibold text-base text-text-primary">
-            Step 1: Upload Magazine PDF
+            Step 1: Upload Magazine PDF Document
           </h3>
         </div>
 
@@ -173,16 +192,16 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-sm font-display font-bold text-text-primary">
-              {pdfFileName ? `Selected: ${pdfFileName}` : 'Drag & Drop Magazine PDF Here'}
+              {pdfFileName ? `Selected PDF: ${pdfFileName}` : 'Drag & Drop Magazine PDF Here'}
             </span>
             <span className="text-xs text-text-muted font-mono">
-              Supports high-res PDF files up to 150MB
+              PDF file will automatically power the PDF Viewer in the Reading Page
             </span>
           </div>
         </div>
       </div>
 
-      {/* 2. Cover Image Customization */}
+      {/* 2. Cover Image Customization (URL or Local Image File Upload) */}
       <div className="p-6 rounded-3xl bg-surface border border-border/80 flex flex-col gap-5">
         <div className="flex items-center justify-between border-b border-border/60 pb-3">
           <div className="flex items-center gap-2">
@@ -202,7 +221,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
                   : 'text-text-secondary hover:text-text-primary'
               }`}
             >
-              Custom Cover URL
+              Upload Custom Image
             </button>
             <button
               type="button"
@@ -213,26 +232,61 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
                   : 'text-text-secondary hover:text-text-primary'
               }`}
             >
-              Use First Page
+              Use First PDF Page
             </button>
           </div>
         </div>
 
         {coverMode === 'custom' ? (
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-mono text-text-muted uppercase">Cover Image URL</label>
-            <input
-              type="url"
-              value={customCoverUrl}
-              onChange={(e) => setCustomCoverUrl(e.target.value)}
-              placeholder="https://images.unsplash.com/..."
-              className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
-            />
+          <div className="flex flex-col gap-4">
+            {/* File Upload Selector for Image */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-mono text-text-muted uppercase">Upload Local Image File as Cover</label>
+              <div className="flex items-center gap-3">
+                <label className="px-4 py-2.5 rounded-xl bg-background border border-border/80 hover:border-accent text-xs font-semibold text-text-primary cursor-pointer flex items-center gap-2 transition-colors">
+                  <Upload className="w-4 h-4 text-accent" />
+                  <span>{coverFileName ? `File: ${coverFileName}` : 'Choose Image File...'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverImageFileUpload}
+                    className="hidden"
+                  />
+                </label>
+                <span className="text-xs text-text-muted">OR enter image URL below</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-mono text-text-muted uppercase">Or Paste Cover Image URL</label>
+              <input
+                type="url"
+                value={customCoverUrl}
+                onChange={(e) => setCustomCoverUrl(e.target.value)}
+                placeholder="https://images.unsplash.com/..."
+                className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
+
+            {/* Preview Image Thumbnail */}
+            {customCoverUrl && (
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-background border border-border/60">
+                <img
+                  src={customCoverUrl}
+                  alt="Cover Preview"
+                  className="w-12 h-16 object-cover rounded-lg shadow-sm"
+                />
+                <div className="flex flex-col text-xs">
+                  <span className="font-semibold text-text-primary">Cover Preview</span>
+                  <span className="text-[11px] text-emerald-600">✓ Ready to display on entire website</span>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="p-4 rounded-xl bg-background border border-border/60 text-xs text-text-secondary flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-accent" />
-            <span>The first page of the uploaded PDF will automatically be extracted as the 3D cover graphic.</span>
+            <span>The first page of your uploaded PDF will automatically be set as the cover graphic across the website.</span>
           </div>
         )}
       </div>
@@ -254,18 +308,18 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Vogue Editorial: Architectural Arcana"
+              placeholder="e.g. Vogue Magazine: Architectural Arcana"
               className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-mono text-text-muted uppercase">Edition / Issue Tag</label>
+            <label className="text-xs font-mono text-text-muted uppercase">Magazine Tag / Edition</label>
             <input
               type="text"
               value={edition}
               onChange={(e) => setEdition(e.target.value)}
-              placeholder="e.g. Issue #45 — Autumn 2026"
+              placeholder="e.g. Magazine #45 — Autumn 2026"
               className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
@@ -291,7 +345,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
               type="text"
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
-              placeholder="e.g. Special Collectors Retrospective"
+              placeholder="e.g. Special Collectors Edition"
               className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
@@ -326,7 +380,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
               type="text"
               value={authorInput}
               onChange={(e) => setAuthorInput(e.target.value)}
-              placeholder="Add author name (e.g. George R.R. Martin)..."
+              placeholder="Add author name..."
               className="flex-1 px-4 py-2 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
             />
             <button
@@ -334,7 +388,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
               onClick={handleAddAuthor}
               className="px-4 py-2 rounded-xl bg-surface-hover text-text-primary text-xs font-semibold flex items-center gap-1 hover:bg-accent hover:text-white transition-colors"
             >
-              <Plus className="w-3.5 h-3.5" /> Add
+              <Plus className="w-3.5 h-3.5" /> Add Author
             </button>
           </div>
         </div>
@@ -357,7 +411,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
               type="text"
               value={editorInput}
               onChange={(e) => setEditorInput(e.target.value)}
-              placeholder="Add editor name (e.g. Elena Rostova)..."
+              placeholder="Add editor name..."
               className="flex-1 px-4 py-2 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
             />
             <button
@@ -365,7 +419,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
               onClick={handleAddEditor}
               className="px-4 py-2 rounded-xl bg-surface-hover text-text-primary text-xs font-semibold flex items-center gap-1 hover:bg-accent hover:text-white transition-colors"
             >
-              <Plus className="w-3.5 h-3.5" /> Add
+              <Plus className="w-3.5 h-3.5" /> Add Editor
             </button>
           </div>
         </div>
@@ -381,7 +435,6 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
             </h3>
           </div>
 
-          {/* Toggle Upload Now vs Schedule */}
           <div className="flex items-center gap-1 p-1 rounded-xl bg-background border border-border/80">
             <button
               type="button"
@@ -442,7 +495,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
             className="px-8 py-3 rounded-full bg-accent text-white font-semibold text-sm hover:bg-accent-hover transition-all shadow-md flex items-center gap-2"
           >
             <CheckCircle2 className="w-4 h-4" />
-            {publishMode === 'now' ? 'Publish Issue Now' : 'Schedule Release'}
+            {publishMode === 'now' ? 'Upload Magazine Now' : 'Schedule Magazine Release'}
           </button>
         </div>
       </div>

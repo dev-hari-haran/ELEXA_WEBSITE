@@ -86,7 +86,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ onReadBook, onDetailBo
                 : 'bg-surface border border-border text-text-secondary hover:bg-surface-hover'
             }`}
           >
-            {filter} Issues
+            {filter} Magazines
           </button>
         ))}
       </div>

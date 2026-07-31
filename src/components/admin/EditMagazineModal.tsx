@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit3, Save, Trash2, Image as ImageIcon } from 'lucide-react';
+import { X, Edit3, Save, Trash2, Upload } from 'lucide-react';
 import { Book } from '../../types/book';
 import { useLibraryStore } from '../../stores/useLibraryStore';
 
@@ -16,6 +16,7 @@ export const EditMagazineModal: React.FC<EditMagazineModalProps> = ({ book, isOp
   const [edition, setEdition] = useState('');
   const [author, setAuthor] = useState('');
   const [coverImage, setCoverImage] = useState('');
+  const [coverFileName, setCoverFileName] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<'Fantasy' | 'Sci-Fi' | 'Classics' | 'Non-Fiction' | 'Technology' | 'Biography' | 'Design' | 'Architecture'>('Design');
 
@@ -31,6 +32,20 @@ export const EditMagazineModal: React.FC<EditMagazineModalProps> = ({ book, isOp
   }, [book]);
 
   if (!isOpen || !book) return null;
+
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCoverFileName(file.name);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setCoverImage(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +74,7 @@ export const EditMagazineModal: React.FC<EditMagazineModalProps> = ({ book, isOp
         <div className="px-6 py-4 border-b border-border/70 flex items-center justify-between bg-background/50">
           <div className="flex items-center gap-2 font-display font-semibold text-lg text-text-primary">
             <Edit3 className="w-5 h-5 text-accent" />
-            Modify Magazine Issue
+            Modify Magazine Details
           </div>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-surface-hover text-text-muted">
             <X className="w-5 h-5" />
@@ -100,8 +115,22 @@ export const EditMagazineModal: React.FC<EditMagazineModalProps> = ({ book, isOp
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-mono text-text-muted uppercase">Cover Image URL</label>
+          {/* Cover Image Upload (Local File or URL) */}
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-mono text-text-muted uppercase">Cover Image</label>
+            <div className="flex items-center gap-3">
+              <label className="px-3 py-2 rounded-xl bg-background border border-border/80 hover:border-accent text-xs font-semibold text-text-primary cursor-pointer flex items-center gap-1.5 transition-colors">
+                <Upload className="w-3.5 h-3.5 text-accent" />
+                <span>{coverFileName ? coverFileName : 'Choose Image File...'}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileUpload}
+                  className="hidden"
+                />
+              </label>
+              <span className="text-xs text-text-muted">OR URL below</span>
+            </div>
             <input
               type="url"
               value={coverImage}
