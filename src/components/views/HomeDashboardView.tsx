@@ -6,6 +6,8 @@ import { MOCK_FRIENDS } from '../../data/mockFriends';
 import { MOCK_AUTHORS } from '../../data/mockAuthors';
 import { useAnnouncementStore } from '../../stores/useAnnouncementStore';
 
+import { MOCK_BOOKS } from '../../data/mockBooks';
+
 interface HomeDashboardViewProps {
   books: Book[];
   onReadBook: (book: Book) => void;
@@ -26,7 +28,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
     'upcoming-design': true,
   });
 
-  const currentReadingBook = books.find((b) => b.id === 'hp-6') || books[0];
+  const currentReadingBook = books.find((b) => b.id === 'hp-6') || books[0] || MOCK_BOOKS[0];
   const { announcements } = useAnnouncementStore();
 
   // Filter popular books based on tab selection

@@ -45,9 +45,10 @@ export const useLibraryStore = create<LibraryState>()(
           books: state.books.map((b) => (b.id === bookId ? { ...b, ...updatedFields } : b)),
         })),
       deleteBook: (bookId) =>
-        set((state) => ({
-          books: state.books.filter((b) => b.id !== bookId),
-        })),
+        set((state) => {
+          const remaining = state.books.filter((b) => b.id !== bookId);
+          return { books: remaining.length > 0 ? remaining : MOCK_BOOKS };
+        }),
       setCategory: (category) => set({ selectedCategory: category }),
       setCollection: (collection) => set({ selectedCollection: collection }),
       openBookDetail: (book) => set({ selectedBookDetail: book }),
