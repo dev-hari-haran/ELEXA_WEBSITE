@@ -5,17 +5,21 @@ import { Announcement } from '../types/announcement';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl && 
+  supabaseAnonKey && 
+  !supabaseAnonKey.includes('placeholder')
+);
 
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
 /**
- * Upload & persist Magazine metadata & PDF blob to Supabase
+ * Upload & persist Magazine to Supabase Cloud Database
  */
 export async function saveMagazineToSupabase(book: Book): Promise<boolean> {
-  if (!supabase || !isSupabaseConfigured) return false;
+  if (!supabase) return false;
 
   try {
     const { error } = await supabase
@@ -48,10 +52,33 @@ export async function saveMagazineToSupabase(book: Book): Promise<boolean> {
 }
 
 /**
+ * Delete Magazine from Supabase
+ */
+export async function deleteMagazineFromSupabase(bookId: string): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from('magazines')
+      .delete()
+      .eq('id', bookId);
+
+    if (error) {
+      console.error('Supabase Magazine Delete Error:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Supabase Delete Error:', err);
+    return false;
+  }
+}
+
+/**
  * Fetch all persisted Magazines from Supabase Cloud Database
  */
 export async function fetchMagazinesFromSupabase(): Promise<Book[] | null> {
-  if (!supabase || !isSupabaseConfigured) return null;
+  if (!supabase) return null;
 
   try {
     const { data, error } = await supabase
@@ -118,7 +145,7 @@ export async function fetchMagazinesFromSupabase(): Promise<Book[] | null> {
  * Upload Announcement to Supabase
  */
 export async function saveAnnouncementToSupabase(announcement: Announcement): Promise<boolean> {
-  if (!supabase || !isSupabaseConfigured) return false;
+  if (!supabase) return false;
 
   try {
     const { error } = await supabase
@@ -142,5 +169,57 @@ export async function saveAnnouncementToSupabase(announcement: Announcement): Pr
   } catch (err) {
     console.error('Supabase Error:', err);
     return false;
+  }
+}
+
+/**
+ * Delete Announcement from Supabase
+ */
+export async function deleteAnnouncementFromSupabase(id: string): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from('announcements')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase Announcement Delete Error:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Supabase Delete Error:', err);
+    return false;
+  }
+}
+
+/**
+ * Fetch all Announcements from Supabase
+ */
+export async function fetchAnnouncementsFromSupabase(): Promise<Announcement[] | null> {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('announcements')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error || !data) return null;
+
+    return data.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      content: item.content,
+      category: item.category || 'New Issue',
+      imageUrl: item.image_url,
+      date: item.date_text || 'Recently released',
+      isNew: item.is_new ?? true,
+    }));
+  } catch (err) {
+    console.error('Supabase Fetch Error:', err);
+    return null;
   }
 }
