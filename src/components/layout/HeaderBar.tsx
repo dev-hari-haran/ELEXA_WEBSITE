@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Bell, WifiOff, Sparkles, BookOpen, Check, User } from 'lucide-react';
 import { useOfflineStatus } from '../../hooks/useOfflineStatus';
 import { ProfileSubWindowModal } from './ProfileSubWindowModal';
-import { MOCK_ANNOUNCEMENTS } from '../../data/mockAnnouncements';
+import { useAnnouncementStore } from '../../stores/useAnnouncementStore';
 
 interface HeaderBarProps {
   onOpenAdmin?: () => void;
@@ -12,13 +12,10 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ onOpenAdmin }) => {
   const { isOnline } = useOfflineStatus();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [announcements, setAnnouncements] = useState(MOCK_ANNOUNCEMENTS);
+  
+  const { announcements, markAllAsRead } = useAnnouncementStore();
 
   const unreadCount = announcements.filter(a => a.isNew).length;
-
-  const markAllAsRead = () => {
-    setAnnouncements(prev => prev.map(a => ({ ...a, isNew: false })));
-  };
 
   return (
     <header className="h-20 px-8 flex items-center justify-between bg-transparent z-20 select-none">
@@ -106,7 +103,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ onOpenAdmin }) => {
           )}
         </div>
 
-        {/* Production Profile Account Button (No Hardcoded Photo) */}
+        {/* Production Profile Account Button */}
         <button
           onClick={() => setIsProfileModalOpen(true)}
           className="w-10 h-10 rounded-full bg-accent/10 border border-accent/30 hover:border-accent text-accent flex items-center justify-center transition-all shadow-sm relative group"

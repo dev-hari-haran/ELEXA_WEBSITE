@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ShieldCheck, UploadCloud, Eye, Bookmark, MessageSquare, TrendingUp, ArrowLeft, Lock, Key, LogOut, CheckCircle2, Sparkles } from 'lucide-react';
+import { ShieldCheck, UploadCloud, Eye, Bookmark, MessageSquare, TrendingUp, ArrowLeft, Lock, Key, Megaphone } from 'lucide-react';
 import { useLibraryStore } from '../../stores/useLibraryStore';
 import { UploadMagazineForm } from '../admin/UploadMagazineForm';
 import { MagazineAnalyticsTable } from '../admin/MagazineAnalyticsTable';
+import { PublishAnnouncementForm } from '../admin/PublishAnnouncementForm';
 import { EditMagazineModal } from '../admin/EditMagazineModal';
 import { Book } from '../../types/book';
 
@@ -12,7 +13,7 @@ interface AdminViewProps {
 
 export const AdminView: React.FC<AdminViewProps> = ({ onExitAdmin }) => {
   const { books } = useLibraryStore();
-  const [activeAdminTab, setActiveAdminTab] = useState<'analytics' | 'upload'>('upload');
+  const [activeAdminTab, setActiveAdminTab] = useState<'analytics' | 'upload' | 'announcement'>('upload');
   const [editingBook, setEditingBook] = useState<Book | null>(null);
 
   // Admin Passcode Lock State
@@ -26,7 +27,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onExitAdmin }) => {
       setIsAuthenticated(true);
       setPasscodeError(null);
     } else {
-      setPasscodeError('Invalid Security Passcode. Try: admin123');
+      setPasscodeError('Invalid Security Passcode. Default: admin123');
     }
   };
 
@@ -79,7 +80,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onExitAdmin }) => {
             }}
             className="text-xs text-accent hover:underline font-semibold font-mono"
           >
-            ⚡ Quick Demo Unlock (Bypass Security)
+            ⚡ Quick Admin Console Access
           </button>
 
           {onExitAdmin && (
@@ -124,7 +125,17 @@ export const AdminView: React.FC<AdminViewProps> = ({ onExitAdmin }) => {
                 : 'text-text-secondary hover:text-text-primary'
             }`}
           >
-            <UploadCloud className="w-4 h-4" /> Upload & Publish PDF
+            <UploadCloud className="w-4 h-4" /> Upload PDF
+          </button>
+          <button
+            onClick={() => setActiveAdminTab('announcement')}
+            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+              activeAdminTab === 'announcement'
+                ? 'bg-accent text-white shadow-md'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            <Megaphone className="w-4 h-4" /> Release Announcements
           </button>
           <button
             onClick={() => setActiveAdminTab('analytics')}
@@ -134,7 +145,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onExitAdmin }) => {
                 : 'text-text-secondary hover:text-text-primary'
             }`}
           >
-            <TrendingUp className="w-4 h-4" /> Manage Magazines ({books.length})
+            <TrendingUp className="w-4 h-4" /> Manage ({books.length})
           </button>
         </div>
 
@@ -208,7 +219,17 @@ export const AdminView: React.FC<AdminViewProps> = ({ onExitAdmin }) => {
                 : 'text-text-secondary'
             }`}
           >
-            <UploadCloud className="w-4 h-4" /> Upload PDF
+            <UploadCloud className="w-4 h-4" /> Upload
+          </button>
+          <button
+            onClick={() => setActiveAdminTab('announcement')}
+            className={`flex-1 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+              activeAdminTab === 'announcement'
+                ? 'bg-accent text-white shadow-md'
+                : 'text-text-secondary'
+            }`}
+          >
+            <Megaphone className="w-4 h-4" /> Announce
           </button>
           <button
             onClick={() => setActiveAdminTab('analytics')}
@@ -218,14 +239,18 @@ export const AdminView: React.FC<AdminViewProps> = ({ onExitAdmin }) => {
                 : 'text-text-secondary'
             }`}
           >
-            <TrendingUp className="w-4 h-4" /> Manage ({books.length})
+            <TrendingUp className="w-4 h-4" /> Manage
           </button>
         </div>
 
         {/* Main Admin Tab Body */}
-        {activeAdminTab === 'upload' ? (
+        {activeAdminTab === 'upload' && (
           <UploadMagazineForm onSuccess={() => setActiveAdminTab('analytics')} />
-        ) : (
+        )}
+        {activeAdminTab === 'announcement' && (
+          <PublishAnnouncementForm />
+        )}
+        {activeAdminTab === 'analytics' && (
           <MagazineAnalyticsTable onEdit={(book) => setEditingBook(book)} />
         )}
       </main>

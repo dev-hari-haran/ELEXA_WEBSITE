@@ -3,8 +3,8 @@ import { ArrowUpRight, Heart, Send, Sparkles, MessageSquare, ChevronDown, Award,
 import { Book } from '../../types/book';
 import { BookCard } from '../bookshelf/BookCard';
 import { MOCK_FRIENDS } from '../../data/mockFriends';
-import { MOCK_ANNOUNCEMENTS } from '../../data/mockAnnouncements';
 import { MOCK_AUTHORS } from '../../data/mockAuthors';
+import { useAnnouncementStore } from '../../stores/useAnnouncementStore';
 
 interface HomeDashboardViewProps {
   books: Book[];
@@ -27,7 +27,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
   });
 
   const currentReadingBook = books.find((b) => b.id === 'hp-6') || books[0];
-  const announcements = MOCK_ANNOUNCEMENTS;
+  const { announcements } = useAnnouncementStore();
 
   // Filter popular books based on tab selection
   const filteredPopularBooks = popularTab === 'most_popular'
