@@ -4,6 +4,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { useLibraryStore } from '../../stores/useLibraryStore';
 import { useReaderStore } from '../../stores/useReaderStore';
 import { Book } from '../../types/book';
+import { saveMagazineToSupabase } from '../../services/supabaseClient';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -191,6 +192,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
     // Add magazine to library store & set as active reader magazine across whole site!
     addBook(newMagazine);
     setActiveBook(newMagazine.id);
+    saveMagazineToSupabase(newMagazine);
 
     const msg = publishMode === 'now' 
       ? `"${title}" uploaded live! Reflected across the entire website.`
