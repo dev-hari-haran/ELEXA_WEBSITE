@@ -5,4 +5,5 @@ export interface Announcement {
   date: string;
   category: 'New Issue' | 'Event' | 'Update' | 'Editorial';
   isNew?: boolean;
+  imageUrl?: string;
 }

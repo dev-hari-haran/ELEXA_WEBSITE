@@ -82,17 +82,24 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ onOpenAdmin }) => {
                   announcements.map((ann) => (
                     <div 
                       key={ann.id} 
-                      className={`p-2.5 rounded-xl border transition-colors ${
+                      className={`p-2.5 rounded-xl border transition-colors flex flex-col gap-1.5 ${
                         ann.isNew 
                           ? 'bg-accent-light/50 border-accent/30 text-text-primary' 
                           : 'bg-background/50 border-border/50 text-text-secondary'
                       }`}
                     >
+                      {ann.imageUrl && (
+                        <img
+                          src={ann.imageUrl}
+                          alt={ann.title}
+                          className="w-full h-24 object-cover rounded-lg border border-border/60"
+                        />
+                      )}
                       <div className="flex items-center justify-between text-xs font-semibold">
                         <span className="text-accent">{ann.title}</span>
                         <span className="text-[10px] text-text-muted font-mono">{ann.date}</span>
                       </div>
-                      <p className="text-xs text-text-secondary mt-1 leading-relaxed">
+                      <p className="text-xs text-text-secondary leading-relaxed">
                         {ann.content}
                       </p>
                     </div>

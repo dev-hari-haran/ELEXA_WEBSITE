@@ -326,7 +326,14 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
 
             <div className="flex flex-col gap-3">
               {announcements.map((ann) => (
-                <div key={ann.id} className="p-3.5 rounded-2xl bg-background/60 border border-border/40 flex flex-col gap-1">
+                <div key={ann.id} className="p-3.5 rounded-2xl bg-background/60 border border-border/40 flex flex-col gap-2">
+                  {ann.imageUrl && (
+                    <img
+                      src={ann.imageUrl}
+                      alt={ann.title}
+                      className="w-full h-32 object-cover rounded-xl border border-border/60 shadow-sm"
+                    />
+                  )}
                   <div className="flex items-center justify-between text-xs font-semibold">
                     <span className="text-text-primary font-display">{ann.title}</span>
                     <span className="text-[10px] text-text-muted font-mono">{ann.date}</span>
