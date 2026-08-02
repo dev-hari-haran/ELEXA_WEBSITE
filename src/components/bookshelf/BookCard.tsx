@@ -45,10 +45,13 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onRead, onDetail, feat
         style={{ transform: transformStyle }}
         className="relative aspect-[2/3] w-full rounded-xl overflow-hidden shadow-book-3d group-hover:shadow-book-hover transition-all duration-300 bg-surface border border-border/40"
       >
-        {/* Cover Image */}
+        {/* Cover Image with Automatic Fallback */}
         <img
           src={book.coverImage}
           alt={book.title}
+          onError={(e) => {
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=800&auto=format&fit=crop';
+          }}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 

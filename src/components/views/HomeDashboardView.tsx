@@ -156,6 +156,9 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
                 <img
                   src={book.coverImage}
                   alt={book.title}
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=800&auto=format&fit=crop';
+                  }}
                   className="w-16 h-20 object-cover rounded-lg shadow-sm flex-shrink-0 group-hover:scale-105 transition-transform"
                 />
                 <div className="flex-1 flex flex-col justify-between">

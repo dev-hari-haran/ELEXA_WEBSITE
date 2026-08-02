@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Sun, Moon, Clock, Check } from 'lucide-react';
+import { X, Sun, Clock, Check } from 'lucide-react';
 import { useThemeStore } from '../../stores/useThemeStore';
 import { ThemeMode } from '../../types/theme';
 
@@ -20,16 +20,20 @@ export const ThemeSettingsPopover: React.FC<ThemeSettingsPopoverProps> = ({ isOp
     { id: 'dark', label: 'Dark', bg: 'bg-[#1E1E24]', text: 'text-slate-100', border: 'border-slate-700' },
     { id: 'charcoal', label: 'Charcoal', bg: 'bg-[#121212]', text: 'text-gray-200', border: 'border-gray-800' },
     { id: 'amoled', label: 'AMOLED', bg: 'bg-black', text: 'text-white', border: 'border-neutral-900' },
+    { id: 'emerald', label: 'Emerald', bg: 'bg-[#061A14]', text: 'text-[#ECFDF5]', border: 'border-[#1F5243]' },
+    { id: 'nordic', label: 'Nordic Sapphire', bg: 'bg-[#0B132B]', text: 'text-[#EDF2F7]', border: 'border-[#3A4B7C]' },
+    { id: 'rose', label: 'Rose Velvet', bg: 'bg-[#1F1116]', text: 'text-[#FDF2F5]', border: 'border-[#52323E]' },
+    { id: 'amber', label: 'Warm Amber', bg: 'bg-[#1C1917]', text: 'text-[#FAFAF9]', border: 'border-[#44403C]' },
   ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm select-none animate-fadeIn">
-      <div className="w-full max-w-sm p-6 rounded-3xl bg-surface border border-border/80 shadow-2xl flex flex-col gap-6">
+      <div className="w-full max-w-md p-6 rounded-3xl bg-surface border border-border/80 shadow-2xl flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sun className="w-5 h-5 text-accent" />
             <h3 className="font-serif font-bold text-lg text-text-primary">
-              Theme System
+              Theme & Color Palettes
             </h3>
           </div>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-surface-hover text-text-muted">
@@ -38,7 +42,7 @@ export const ThemeSettingsPopover: React.FC<ThemeSettingsPopoverProps> = ({ isOp
         </div>
 
         {/* Theme Palette Grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2.5 max-h-80 overflow-y-auto pr-1">
           {themeOptions.map((t) => (
             <button
               key={t.id}
