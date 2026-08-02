@@ -1,4 +1,4 @@
-export type ThemeMode = 'light' | 'cream' | 'sepia' | 'dark' | 'charcoal' | 'amoled';
+export type ThemeMode = 'light' | 'cream' | 'sepia' | 'dark' | 'charcoal' | 'amoled' | 'emerald' | 'nordic' | 'rose' | 'amber';
 
 export interface CircadianSchedule {
   enabled: boolean;

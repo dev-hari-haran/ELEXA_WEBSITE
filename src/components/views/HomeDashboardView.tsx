@@ -28,7 +28,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
     'upcoming-design': true,
   });
 
-  const currentReadingBook = books.find((b) => b.id === 'hp-6') || books[0] || MOCK_BOOKS[0];
+  const currentReadingBook = books[0] || MOCK_BOOKS[0];
   const { announcements } = useAnnouncementStore();
 
   // Filter popular books based on tab selection
@@ -67,50 +67,30 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
       {/* Left Main Content Column */}
       <div className="flex-1 flex flex-col gap-10">
         
-        {/* Main Hero Banner — Clean Production Heading */}
-        <div className="p-8 rounded-3xl bg-surface border border-border/80 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
+        {/* Main Hero Banner — High-Contrast Serif Font for ELEXA MAGAZINE HUB (No Side Cover Photo Card) */}
+        <div className="p-8 sm:p-10 rounded-3xl bg-surface border border-border/80 shadow-sm relative overflow-hidden flex flex-col items-start justify-between gap-6">
           <div className="absolute top-0 right-0 w-96 h-96 bg-accent-light/40 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
 
-          <div className="flex flex-col gap-4 max-w-md z-10">
-            <h1 className="text-3xl sm:text-4xl font-display font-semibold text-text-primary leading-[1.15] tracking-tight">
-              Welcome to <br />
-              <span className="text-accent italic font-normal">ELEXA Magazine Hub</span>
+          <div className="flex flex-col gap-4 max-w-2xl z-10">
+            <span className="text-xs font-mono uppercase tracking-widest text-accent font-bold">
+              Digital Issue Archive & Editorial Suite
+            </span>
+
+            <h1 className="text-4xl sm:text-5xl font-serif font-black uppercase text-accent tracking-wider leading-none drop-shadow-sm font-display">
+              ELEXA MAGAZINE HUB
             </h1>
-            <p className="text-sm text-text-secondary leading-relaxed">
-              Immerse yourself in the latest digital magazines, editorial features, and curated digital columns.
+
+            <p className="text-sm text-text-secondary leading-relaxed max-w-xl">
+              Immerse yourself in high-gloss digital magazines, editorial features, and curated digital columns. Current Featured Issue: <span className="font-semibold text-text-primary">{currentReadingBook.title}</span> ({currentReadingBook.edition || 'Latest Edition'}).
             </p>
 
             <div className="flex items-center gap-4 mt-2">
               <button
                 onClick={() => onReadBook(currentReadingBook)}
-                className="px-6 py-3 rounded-full bg-text-primary text-background font-semibold text-sm flex items-center gap-2 hover:bg-accent hover:text-white transition-all shadow-md group"
+                className="px-8 py-3.5 rounded-full bg-text-primary text-background font-semibold text-sm flex items-center gap-2 hover:bg-accent hover:text-white transition-all shadow-md group"
               >
-                Start reading <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                Start reading "{currentReadingBook.title}" <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </button>
-            </div>
-          </div>
-
-          {/* Magazine Cover Card Graphic */}
-          <div className="relative z-10 transform hover:scale-105 transition-transform duration-500 cursor-pointer" onClick={() => onReadBook(currentReadingBook)}>
-            <div className="w-64 h-44 rounded-xl bg-background border border-border/80 shadow-2xl p-4 flex items-center gap-4 transform rotate-1">
-              <img
-                src={currentReadingBook.coverImage}
-                alt={currentReadingBook.title}
-                className="w-24 h-full object-cover rounded shadow-md"
-              />
-              <div className="flex flex-col justify-between h-full py-1">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-mono uppercase text-accent font-semibold">
-                    {currentReadingBook.edition || 'Current Issue'}
-                  </span>
-                  <h4 className="text-xs font-bold text-text-primary line-clamp-2 mt-1 font-display">
-                    {currentReadingBook.title}
-                  </h4>
-                </div>
-                <div className="text-[11px] text-text-muted font-mono">
-                  By {currentReadingBook.author}
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -176,6 +156,9 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
                 <img
                   src={book.coverImage}
                   alt={book.title}
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=800&auto=format&fit=crop';
+                  }}
                   className="w-16 h-20 object-cover rounded-lg shadow-sm flex-shrink-0 group-hover:scale-105 transition-transform"
                 />
                 <div className="flex-1 flex flex-col justify-between">

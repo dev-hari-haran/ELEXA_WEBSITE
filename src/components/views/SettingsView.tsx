@@ -149,20 +149,24 @@ export const SettingsView: React.FC = () => {
           <span className="text-xs font-mono font-bold text-accent uppercase">{theme}</span>
         </div>
 
-        {/* Theme Palette Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {/* Theme Palette Grid (All 10 Palettes) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           {[
-            { id: 'cream', label: 'Cream (Warm Paper)', color: 'bg-[#FAF7F0] text-[#1C1917] border-[#E2DACD]' },
+            { id: 'cream', label: 'Cream Paper', color: 'bg-[#FAF7F0] text-[#1C1917] border-[#E2DACD]' },
             { id: 'light', label: 'Light Clean', color: 'bg-white text-slate-900 border-slate-200' },
             { id: 'sepia', label: 'Sepia Vintage', color: 'bg-[#F4ECD8] text-[#3B2E1E] border-[#D6C898]' },
             { id: 'dark', label: 'Dark Slate', color: 'bg-[#1E1E24] text-white border-slate-700' },
             { id: 'charcoal', label: 'Night Charcoal', color: 'bg-[#121212] text-gray-200 border-gray-800' },
-            { id: 'amoled', label: 'AMOLED Pure Black', color: 'bg-black text-white border-neutral-900' },
+            { id: 'amoled', label: 'AMOLED Black', color: 'bg-black text-white border-neutral-900' },
+            { id: 'emerald', label: 'Nordic Emerald', color: 'bg-[#061A14] text-[#ECFDF5] border-[#1F5243]' },
+            { id: 'nordic', label: 'Nordic Sapphire', color: 'bg-[#0B132B] text-[#EDF2F7] border-[#3A4B7C]' },
+            { id: 'rose', label: 'Rose Velvet', color: 'bg-[#1F1116] text-[#FDF2F5] border-[#52323E]' },
+            { id: 'amber', label: 'Warm Amber', color: 'bg-[#1C1917] text-[#FAFAF9] border-[#44403C]' },
           ].map((t) => (
             <button
               key={t.id}
               onClick={() => setTheme(t.id as any)}
-              className={`p-4 rounded-2xl border text-xs font-semibold flex items-center justify-between transition-all ${t.color} ${
+              className={`p-3.5 rounded-2xl border text-xs font-semibold flex items-center justify-between transition-all ${t.color} ${
                 theme === t.id ? 'ring-2 ring-accent scale-102 shadow-md' : 'hover:scale-101'
               }`}
             >

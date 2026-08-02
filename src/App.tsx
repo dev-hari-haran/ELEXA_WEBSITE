@@ -11,6 +11,7 @@ import { AdminView } from './components/views/AdminView';
 import { BookDetailModal } from './components/bookshelf/BookDetailModal';
 
 import { useLibraryStore } from './stores/useLibraryStore';
+import { useAnnouncementStore } from './stores/useAnnouncementStore';
 import { useReaderStore } from './stores/useReaderStore';
 import { useThemeStore } from './stores/useThemeStore';
 import { useCircadian } from './hooks/useCircadian';
@@ -57,9 +58,11 @@ export function App() {
   useCircadian();
   useKeyboardShortcuts();
 
-  // Sync theme attribute on mount
+  // Sync theme & fetch real database data on mount
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    useLibraryStore.getState().syncFromDatabase();
+    useAnnouncementStore.getState().syncFromDatabase();
   }, [theme]);
 
   // Current active book for Reader

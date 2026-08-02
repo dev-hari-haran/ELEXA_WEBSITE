@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Book } from '../types/book';
-import { MOCK_BOOKS } from '../data/mockBooks';
+import { fetchMagazinesFromSupabase, deleteMagazineFromSupabase } from '../services/supabaseClient';
 
 interface LibraryState {
   books: Book[];
@@ -11,12 +11,14 @@ interface LibraryState {
   viewMode: 'grid' | 'list' | 'bookshelf3d';
   searchQuery: string;
   sortBy: 'recent' | 'title' | 'author' | 'progress';
+  isLoading: boolean;
 
   // Actions
   setBooks: (books: Book[]) => void;
   addBook: (book: Book) => void;
   updateBook: (bookId: string, updatedFields: Partial<Book>) => void;
   deleteBook: (bookId: string) => void;
+  syncFromDatabase: () => Promise<void>;
   setCategory: (category: string | null) => void;
   setCollection: (collection: string | null) => void;
   openBookDetail: (book: Book | null) => void;
@@ -29,14 +31,15 @@ interface LibraryState {
 
 export const useLibraryStore = create<LibraryState>()(
   persist(
-    (set) => ({
-      books: MOCK_BOOKS,
+    (set, get) => ({
+      books: [],
       selectedCategory: null,
       selectedCollection: null,
       selectedBookDetail: null,
       viewMode: 'grid',
       searchQuery: '',
       sortBy: 'recent',
+      isLoading: false,
 
       setBooks: (books) => set({ books }),
       addBook: (newBook) => set((state) => ({ books: [newBook, ...state.books] })),
@@ -44,11 +47,24 @@ export const useLibraryStore = create<LibraryState>()(
         set((state) => ({
           books: state.books.map((b) => (b.id === bookId ? { ...b, ...updatedFields } : b)),
         })),
-      deleteBook: (bookId) =>
-        set((state) => {
-          const remaining = state.books.filter((b) => b.id !== bookId);
-          return { books: remaining.length > 0 ? remaining : MOCK_BOOKS };
-        }),
+
+      deleteBook: (bookId) => {
+        deleteMagazineFromSupabase(bookId);
+        set((state) => ({
+          books: state.books.filter((b) => b.id !== bookId),
+        }));
+      },
+
+      syncFromDatabase: async () => {
+        set({ isLoading: true });
+        const dbMagazines = await fetchMagazinesFromSupabase();
+        if (dbMagazines) {
+          set({ books: dbMagazines, isLoading: false });
+        } else {
+          set({ isLoading: false });
+        }
+      },
+
       setCategory: (category) => set({ selectedCategory: category }),
       setCollection: (collection) => set({ selectedCollection: collection }),
       openBookDetail: (book) => set({ selectedBookDetail: book }),

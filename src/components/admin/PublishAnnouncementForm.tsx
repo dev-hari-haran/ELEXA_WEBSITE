@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Send, Trash2, CheckCircle2, Megaphone, Clock, AlertCircle, Image as ImageIcon, Upload, X } from 'lucide-react';
 import { useAnnouncementStore } from '../../stores/useAnnouncementStore';
+import { saveAnnouncementToSupabase } from '../../services/supabaseClient';
 
 export const PublishAnnouncementForm: React.FC = () => {
   const { announcements, addAnnouncement, deleteAnnouncement, clearAllAnnouncements } = useAnnouncementStore();
@@ -29,14 +30,18 @@ export const PublishAnnouncementForm: React.FC = () => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
 
-    addAnnouncement({
+    const ann = {
+      id: `ann-${Date.now()}`,
       title,
       content,
       category,
       imageUrl: imageUrl || undefined,
       date: publishMode === 'now' ? 'Just now' : `Scheduled for ${scheduleDate || 'Tomorrow'}`,
       isNew: true,
-    });
+    };
+
+    addAnnouncement(ann);
+    saveAnnouncementToSupabase(ann);
 
     setSuccessMessage(`Announcement "${title}" released live with image to the main website!`);
     setTitle('');

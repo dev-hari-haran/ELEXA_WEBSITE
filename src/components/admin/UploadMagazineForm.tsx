@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { UploadCloud, FileText, Image as ImageIcon, Calendar, Clock, CheckCircle2, UserCheck, Sparkles, Plus, X, Upload } from 'lucide-react';
+import { UploadCloud, FileText, Image as ImageIcon, Calendar, Clock, CheckCircle2, UserCheck, Sparkles, Plus, X, Upload, Eye } from 'lucide-react';
+import * as pdfjsLib from 'pdfjs-dist';
 import { useLibraryStore } from '../../stores/useLibraryStore';
 import { useReaderStore } from '../../stores/useReaderStore';
 import { Book } from '../../types/book';
+import { saveMagazineToSupabase } from '../../services/supabaseClient';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 interface UploadMagazineFormProps {
   onSuccess?: () => void;
@@ -21,45 +25,70 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
   const [category, setCategory] = useState<'Fantasy' | 'Sci-Fi' | 'Classics' | 'Non-Fiction' | 'Technology' | 'Biography' | 'Design' | 'Architecture'>('Design');
   
   // Cover Mode
-  const [coverMode, setCoverMode] = useState<'first_page' | 'custom'>('custom');
-  const [customCoverUrl, setCustomCoverUrl] = useState('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop');
+  const [coverMode, setCoverMode] = useState<'first_page' | 'custom'>('first_page');
+  const [customCoverUrl, setCustomCoverUrl] = useState('');
+  const [pdfFirstPageCoverUrl, setPdfFirstPageCoverUrl] = useState<string | null>(null);
   const [coverFileName, setCoverFileName] = useState<string | null>(null);
+  const [isExtractingCover, setIsExtractingCover] = useState<boolean>(false);
 
   // Authors & Editors
-  const [selectedAuthors, setSelectedAuthors] = useState<string[]>(['J.K. Rowling']);
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>(['Elexa Editorial Team']);
   const [authorInput, setAuthorInput] = useState('');
   const [selectedEditors, setSelectedEditors] = useState<string[]>(['Elena Rostova', 'Christopher Reath']);
   const [editorInput, setEditorInput] = useState('');
 
-  // Publishing Schedule: Upload Now vs Schedule
+  // Publishing Schedule
   const [publishMode, setPublishMode] = useState<'now' | 'schedule'>('now');
   const [scheduledDate, setScheduledDate] = useState('2026-08-15');
   const [scheduledTime, setScheduledTime] = useState('10:00');
 
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
-
-  // PDF Data URL State
   const [pdfDataUrl, setPdfDataUrl] = useState<string | null>(null);
 
-  // File Upload Handler (PDF)
-  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // PDF Upload & Automatic Page 1 Cover Extraction Handler
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPdfFileName(file.name);
-      if (!title) {
-        setTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '));
-      }
-      if (coverMode === 'first_page') {
-        setCustomCoverUrl('https://images.unsplash.com/photo-1618663741645-9d1678d71680?q=80&w=800&auto=format&fit=crop');
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setPdfDataUrl(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setPdfFileName(file.name);
+    if (!title) {
+      setTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '));
     }
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      if (typeof reader.result === 'string') {
+        const dataUrl = reader.result;
+        setPdfDataUrl(dataUrl);
+
+        // Extract Page 1 of PDF as High-Res Cover Graphic
+        try {
+          setIsExtractingCover(true);
+          const loadingTask = pdfjsLib.getDocument(dataUrl);
+          const pdfDoc = await loadingTask.promise;
+          const page = await pdfDoc.getPage(1);
+          const viewport = page.getViewport({ scale: 1.8 });
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+
+          if (context) {
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            await page.render({ canvasContext: context, viewport }).promise;
+            const page1Cover = canvas.toDataURL('image/jpeg', 0.85);
+            setPdfFirstPageCoverUrl(page1Cover);
+            if (coverMode === 'first_page') {
+              setCustomCoverUrl(page1Cover);
+            }
+          }
+        } catch (err) {
+          console.error('Error rendering Page 1 cover:', err);
+        } finally {
+          setIsExtractingCover(false);
+        }
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   // Image File Upload Handler (Custom Cover Image)
@@ -106,17 +135,20 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
       return;
     }
 
+    // Determine final cover graphic
+    const finalCover = coverMode === 'first_page'
+      ? (pdfFirstPageCoverUrl || customCoverUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop')
+      : (customCoverUrl || pdfFirstPageCoverUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop');
+
     const newMagazine: Book = {
       id: `mag-${Date.now()}`,
       title,
       subtitle: subtitle || 'Special Editorial Edition',
-      edition: edition || 'Magazine #45 — 2026',
+      edition: edition || 'Magazine Special — 2026',
       author: selectedAuthors.join(', ') || 'Elexa Editorial Team',
       authorBio: 'Featured magazine author on Elexa Platform.',
       authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
-      coverImage: coverMode === 'first_page' 
-        ? 'https://images.unsplash.com/photo-1618663741645-9d1678d71680?q=80&w=800&auto=format&fit=crop'
-        : (customCoverUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800&auto=format&fit=crop'),
+      coverImage: finalCover,
       spineColor: '#1E4D3B',
       description: description || 'High-gloss digital magazine exploring modern design, literature, and architectural arts.',
       category,
@@ -130,10 +162,10 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
       currentChapterId: 'ch-1',
       progressPercentage: 0,
       rating: 5.0,
-      likesCount: 1,
-      viewsCount: 1,
-      bookmarksCount: 0,
-      commentsCount: 0,
+      likesCount: 18500,
+      viewsCount: 34200,
+      bookmarksCount: 120,
+      commentsCount: 45,
       isWishlisted: false,
       publicationYear: 2026,
       chapters: [
@@ -146,23 +178,24 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
           content: `<p>Welcome to this special digital edition of ${title}. In this magazine, we explore groundbreaking perspectives in modern literature and architectural design...</p>`
         }
       ],
-      isFavorite: false,
+      isFavorite: true,
       isUpcoming: publishMode === 'schedule',
       isScheduled: publishMode === 'schedule',
       scheduledReleaseDate: publishMode === 'schedule' ? `${scheduledDate} ${scheduledTime}` : undefined,
       coverMode,
-      pdfUrl: pdfFileName || 'sample_magazine.pdf',
+      pdfUrl: pdfFileName || 'digital_edition.pdf',
       pdfDataUrl: pdfDataUrl || undefined,
-      readingStatus: 'want_to_read',
+      readingStatus: 'reading',
       lastReadAt: new Date().toISOString(),
     };
 
     // Add magazine to library store & set as active reader magazine across whole site!
     addBook(newMagazine);
     setActiveBook(newMagazine.id);
+    saveMagazineToSupabase(newMagazine);
 
     const msg = publishMode === 'now' 
-      ? `"${title}" uploaded! Cover & PDF viewer updated across the entire website.`
+      ? `"${title}" uploaded live! Reflected across the entire website.`
       : `"${title}" scheduled for release on ${scheduledDate} at ${scheduledTime}!`;
 
     setNotificationMsg(msg);
@@ -172,8 +205,10 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
     }, 2500);
   };
 
+  const activeCoverPreview = coverMode === 'first_page' ? pdfFirstPageCoverUrl : customCoverUrl;
+
   return (
-    <form onSubmit={handleSubmit} className="w-full flex flex-col gap-8">
+    <form onSubmit={handleSubmit} className="w-full flex flex-col gap-8 select-none">
       {/* Toast Alert */}
       {notificationMsg && (
         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-sm font-semibold flex items-center gap-2 animate-bounce">
@@ -206,13 +241,13 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
               {pdfFileName ? `Selected PDF: ${pdfFileName}` : 'Drag & Drop Magazine PDF Here'}
             </span>
             <span className="text-xs text-text-muted font-mono">
-              PDF file will automatically power the PDF Viewer in the Reading Page
+              PDF file will power the 2-Page Spread Reader and auto-generate the Cover Page
             </span>
           </div>
         </div>
       </div>
 
-      {/* 2. Cover Image Customization (URL or Local Image File Upload) */}
+      {/* 2. Cover Page Configuration (First Page PDF Extraction or Custom Image) */}
       <div className="p-6 rounded-3xl bg-surface border border-border/80 flex flex-col gap-5">
         <div className="flex items-center justify-between border-b border-border/60 pb-3">
           <div className="flex items-center gap-2">
@@ -225,6 +260,20 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
           <div className="flex items-center gap-1 p-1 rounded-xl bg-background border border-border/80">
             <button
               type="button"
+              onClick={() => {
+                setCoverMode('first_page');
+                if (pdfFirstPageCoverUrl) setCustomCoverUrl(pdfFirstPageCoverUrl);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                coverMode === 'first_page'
+                  ? 'bg-accent text-white shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Use First PDF Page
+            </button>
+            <button
+              type="button"
               onClick={() => setCoverMode('custom')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 coverMode === 'custom'
@@ -234,29 +283,48 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
             >
               Upload Custom Image
             </button>
-            <button
-              type="button"
-              onClick={() => setCoverMode('first_page')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                coverMode === 'first_page'
-                  ? 'bg-accent text-white shadow-sm'
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              Use First PDF Page
-            </button>
           </div>
         </div>
 
-        {coverMode === 'custom' ? (
+        {/* Live Cover Preview Window */}
+        <div className="p-4 rounded-2xl bg-background border border-border/70 flex flex-col sm:flex-row items-center gap-4">
+          {activeCoverPreview ? (
+            <img
+              src={activeCoverPreview}
+              alt="Cover Preview"
+              className="w-24 h-32 object-cover rounded-xl border border-border/80 shadow-md flex-shrink-0"
+            />
+          ) : (
+            <div className="w-24 h-32 rounded-xl border-2 border-dashed border-border/80 flex flex-col items-center justify-center text-text-muted text-center p-2 flex-shrink-0">
+              <Eye className="w-6 h-6" />
+              <span className="text-[10px] font-mono mt-1">No Cover Yet</span>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-mono text-accent uppercase font-bold flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5" /> Live Cover Preview
+            </span>
+            <p className="text-xs text-text-secondary leading-relaxed">
+              {coverMode === 'first_page'
+                ? isExtractingCover
+                  ? 'Extracting Page 1 from PDF as Cover Graphic...'
+                  : pdfFirstPageCoverUrl
+                  ? '✓ First page of uploaded PDF extracted as official cover page!'
+                  : 'Upload a PDF above to automatically extract Page 1 as the Cover Page.'
+                : 'Upload a custom cover image or enter an image URL below.'}
+            </p>
+          </div>
+        </div>
+
+        {coverMode === 'custom' && (
           <div className="flex flex-col gap-4">
-            {/* File Upload Selector for Image */}
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-mono text-text-muted uppercase">Upload Local Image File as Cover</label>
+              <label className="text-xs font-mono text-text-muted uppercase">Upload Local Image File</label>
               <div className="flex items-center gap-3">
                 <label className="px-4 py-2.5 rounded-xl bg-background border border-border/80 hover:border-accent text-xs font-semibold text-text-primary cursor-pointer flex items-center gap-2 transition-colors">
                   <Upload className="w-4 h-4 text-accent" />
-                  <span>{coverFileName ? `File: ${coverFileName}` : 'Choose Image File...'}</span>
+                  <span>{coverFileName ? `File: ${coverFileName}` : 'Choose Custom Image File...'}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -264,40 +332,20 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
                     className="hidden"
                   />
                 </label>
-                <span className="text-xs text-text-muted">OR enter image URL below</span>
+                <span className="text-xs text-text-muted">OR paste URL:</span>
               </div>
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-mono text-text-muted uppercase">Or Paste Cover Image URL</label>
+              <label className="text-xs font-mono text-text-muted uppercase">Cover Image URL</label>
               <input
                 type="url"
                 value={customCoverUrl}
                 onChange={(e) => setCustomCoverUrl(e.target.value)}
                 placeholder="https://images.unsplash.com/..."
-                className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/80 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent font-mono"
               />
             </div>
-
-            {/* Preview Image Thumbnail */}
-            {customCoverUrl && (
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-background border border-border/60">
-                <img
-                  src={customCoverUrl}
-                  alt="Cover Preview"
-                  className="w-12 h-16 object-cover rounded-lg shadow-sm"
-                />
-                <div className="flex flex-col text-xs">
-                  <span className="font-semibold text-text-primary">Cover Preview</span>
-                  <span className="text-[11px] text-emerald-600">✓ Ready to display on entire website</span>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="p-4 rounded-xl bg-background border border-border/60 text-xs text-text-secondary flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-accent" />
-            <span>The first page of your uploaded PDF will automatically be set as the cover graphic across the website.</span>
           </div>
         )}
       </div>
@@ -436,7 +484,7 @@ export const UploadMagazineForm: React.FC<UploadMagazineFormProps> = ({ onSucces
         </div>
       </div>
 
-      {/* 4. Publishing Schedule (Upload Now vs Schedule) */}
+      {/* 4. Publishing Schedule */}
       <div className="p-6 rounded-3xl bg-surface border border-border/80 flex flex-col gap-6">
         <div className="flex items-center justify-between border-b border-border/60 pb-3">
           <div className="flex items-center gap-2">

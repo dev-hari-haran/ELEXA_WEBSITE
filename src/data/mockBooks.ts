@@ -178,7 +178,7 @@ export const MOCK_BOOKS: Book[] = [
     author: 'Patrick Rothfuss',
     authorBio: 'Master story architect and fantasy essayist.',
     authorAvatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=200&auto=format&fit=crop',
-    coverImage: 'https://images.unsplash.com/photo-1543002588-bFA74002ED7E?q=80&w=800&auto=format&fit=crop',
+    coverImage: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=800&auto=format&fit=crop',
     spineColor: '#064E3B',
     description: 'Kvothe takes his first steps into the secret archives and uncovers ancient musical magic.',
     category: 'Fantasy',
